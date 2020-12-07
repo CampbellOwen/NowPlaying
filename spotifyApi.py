@@ -1,0 +1,93 @@
+import base64
+import pprint
+import requests
+import time
+
+# user-read-playback-state
+# https://accounts.spotify.com/authorize?client_id=2828135609a14703920ab3460228c3fc&response_type=code&scope=user-read-currently-playing%20user-read-email&state=34fFs29kd09
+# 2828135609a14703920ab3460228c3fc
+
+# AQB1pWV2FNc_ynkOlrQbD5uJEe5sHFhkn1OOp8RM-j4GThCt0Dvp6JteJ6d7yCxTlHjG7EBbja8WsOIj39UJjqvO6fTqfTBdhOKkTyF5ZVvpxigYc3ZkgtX-H-aWhslzlgduA7buywv9UbRa4ZtODUUwje3pjyxjlwfYeiaDpNegpX0FjCw14NxmNtWuo4wcMdAetipElDrqJu3PuiBMqh6JrJwDJqOsXcGxxCLkRBC6Amg
+
+class Spotify:
+    def authenticate(self):
+        print ("not right now")
+
+    def make_request(self, url):
+        if (int(time.time()) >= self.expiration_time) or not self.access_token:
+            refresh_auth()
+
+        headers = {'Authorization': f'Bearer {self.access_token}'}
+       # print(f'---- [HEADERS] ----')
+       # print(headers)
+        
+        r = requests.get(url, headers=headers)
+        if not (r.status_code == 200 or r.status_code == 204):
+            refresh_auth()
+            r = requests.get(url)
+            if not (r.status_code == 200 or r.status_code == 204):
+                print("---- ERROR ----")
+                print(f"[STATUS_CODE] -- {r.status_code}")
+                print(f'[CONTENT] -- {r.text}')
+                return
+
+        return r.status_code, r
+    
+    def refresh_auth(self):
+        print("---- REFRESHING AUTH CODE ----")
+        hashed_client_code = base64.b64encode(f'{self.client_id}:{self.client_secret}'.encode('utf-8'))
+        #print(f"[HASHED_CLIENT_CODE] -- {hashed_client_code}")
+
+        payload = { 'grant_type': 'refresh_token', 'refresh_token': self.refresh_token }
+        headers = {'Authorization': f'Basic {hashed_client_code.decode("utf-8")}'}
+
+        pp = pprint.PrettyPrinter(indent=4)
+        #print(f'---- [PAYLOAD] ----')
+        pp.pprint(payload)
+        #print(f'---- [HEADERS] ----')
+        pp.pprint(headers)
+
+        r = requests.post("https://accounts.spotify.com/api/token", data=payload, headers=headers)
+        
+        if not r.status_code == 200:
+            print("---- ERROR ----")
+            print(f"[STATUS_CODE] -- {r.status_code}")
+            print(f'[CONTENT] -- {r.text}')
+            return
+
+        result = r.json()
+        self.access_token = result['access_token']
+        self.expiration_time = int(result['expires_in']) + int(time.time())
+        print(f'[ACCESS_TOKEN] -- {self.access_token}')
+        print(f'[EXPIRY_TIME] -- {self.expiration_time}')
+
+    def current_song(self):
+        code, result = self.make_request("https://api.spotify.com/v1/me/player/currently-playing")
+        if not code == 200:
+            return None
+
+        result = result.json()
+
+        data = {}
+        #data['artist'] = ', '.join([artist['name'] for artist in result['item']['artists']])
+        data['artist'] = result['item']['artists'][0]['name']
+        data['album'] = result['item']['album']['name']
+        data['release_date'] = result['item']['album']['release_date']
+        data['song'] = result['item']['name']
+        data['song_popularity'] = result['item']['popularity']
+        data['total_tracks'] = result['item']['album']['total_tracks']
+        data['track_number'] = result['item']['track_number']
+
+        album_urls = [(image['height'], image['url']) for image in result['item']['album']['images']]
+        biggest_image = sorted(album_urls, key=lambda img: img[0], reverse=True)
+
+        data['album_url'] = biggest_image[0][1]
+
+        return data
+
+        
+    def __init__(self, client_id, client_secret, refresh_token):
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.refresh_token = refresh_token
+        self.refresh_auth()
