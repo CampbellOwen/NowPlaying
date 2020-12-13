@@ -141,6 +141,9 @@ class BasicInterface:
                 fill = (255, 255, 255, 255)
                 if i+1 == track_number:
                     fill = (0, 0, 0, 255)
+                
+                if dot_pos[1] >= available_height:
+                    dot_pos = (dot_pos[0] + dot_size + dot_spacing, album_padding)
                 dot_rect = [dot_pos, (dot_pos[0] + dot_size, dot_pos[1] + dot_size)]
                 bw_draw.ellipse(dot_rect, fill=fill, outline=(0,0,0,255))
 
