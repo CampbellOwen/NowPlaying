@@ -12,7 +12,7 @@ from sys import platform
 from sys import argv
 
 from AlbumDisplay import BasicInterface
-from ImageDrawer import BasicDrawer
+from ImageDrawer import BasicDrawer, EinkDrawer
 
 from PIL import Image
 
@@ -92,4 +92,8 @@ if not dither_return_code == 0:
         
 
 img = BasicInterface.create(image_name, current_song)
-BasicDrawer.draw(img)
+
+if platform == "win32":
+    BasicDrawer.draw(img)
+else
+    EinkDrawer.draw(img)
