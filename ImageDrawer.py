@@ -15,7 +15,6 @@ class EinkDrawer:
         epd = waveshare.EPD()
         epd.init()
         epd.Clear()
-        epd.Dev_exit()
 
     def draw(img):
         one_bit = img.convert("1", dither=Image.NONE)
@@ -23,13 +22,13 @@ class EinkDrawer:
 
         print("Initializing display")
         epd = waveshare.EPD()
-        epd.init()
 
         print("Drawing to display")
         epd.display(epd.getbuffer(one_bit), epd.getbuffer(blank))
 
         print("Going to sleep")
         epd.sleep()
+    def clean_up():
         epd.Dev_exit()
 
 if __name__ == "__main__":
