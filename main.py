@@ -86,9 +86,9 @@ with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer:
             exit(1)
                 
 
-        img = interface_generator.create(image_name, current_song)
+        bw, red = interface_generator.create(image_name, current_song)
 
-        drawer.draw(img)
+        drawer.draw(bw, red)
         
         print(f"Sleeping for {sleep_time}s")
         time.sleep(sleep_time)

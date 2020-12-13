@@ -4,8 +4,9 @@ class BasicDrawer:
         return self
     def __exit__(self, exc_type, exc_value, traceback):
         pass
-    def draw(self, img):
+    def draw(self, img, red):
         img.show()
+        red.show()
 
 
 from sys import platform
@@ -27,17 +28,17 @@ class EinkDrawer:
         self.epd.sleep()
         self.epd.Dev_exit()
 
-    def draw(self, img):
-        one_bit = img.convert("1", dither=Image.NONE)
-        blank = Image.new("1", img.size, 255)
+    def draw(self, bw, red):
+        one_bit_bw = img.convert("1", dither=Image.NONE)
+        one_bit_red = red.convert("1", dither=Image.NONE)
 
         epd = waveshare.EPD()
 
         print("Drawing to display")
-        epd.display(epd.getbuffer(one_bit), epd.getbuffer(blank))
+        epd.display(epd.getbuffer(one_bit_bw), epd.getbuffer(one_bit_red))
 
 
 if __name__ == "__main__":
     with EinkDrawer() as drawer:
         with Image.open(argv[1]) as img:
-            drawer.draw(img)
+            drawer.draw(img, img)
