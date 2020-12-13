@@ -24,7 +24,7 @@ class EinkDrawer:
 
     def __exit__(self, exc_type, exc_value, traceback):
         print("Going to sleep")
-        epd.sleep()
+        self.epd.sleep()
         self.epd.Dev_exit()
 
     def draw(self, img):
