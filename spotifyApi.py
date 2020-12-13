@@ -3,12 +3,6 @@ import pprint
 import requests
 import time
 
-# user-read-playback-state
-# https://accounts.spotify.com/authorize?client_id=2828135609a14703920ab3460228c3fc&response_type=code&scope=user-read-currently-playing%20user-read-email&state=34fFs29kd09
-# 2828135609a14703920ab3460228c3fc
-
-# AQB1pWV2FNc_ynkOlrQbD5uJEe5sHFhkn1OOp8RM-j4GThCt0Dvp6JteJ6d7yCxTlHjG7EBbja8WsOIj39UJjqvO6fTqfTBdhOKkTyF5ZVvpxigYc3ZkgtX-H-aWhslzlgduA7buywv9UbRa4ZtODUUwje3pjyxjlwfYeiaDpNegpX0FjCw14NxmNtWuo4wcMdAetipElDrqJu3PuiBMqh6JrJwDJqOsXcGxxCLkRBC6Amg
-
 class Spotify:
     def authenticate(self):
         print ("not right now")
@@ -43,9 +37,9 @@ class Spotify:
 
         pp = pprint.PrettyPrinter(indent=4)
         #print(f'---- [PAYLOAD] ----')
-        pp.pprint(payload)
+        #pp.pprint(payload)
         #print(f'---- [HEADERS] ----')
-        pp.pprint(headers)
+        #pp.pprint(headers)
 
         r = requests.post("https://accounts.spotify.com/api/token", data=payload, headers=headers)
         
