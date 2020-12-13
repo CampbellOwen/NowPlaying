@@ -9,7 +9,7 @@ class Spotify:
 
     def make_request(self, url):
         if (int(time.time()) >= self.expiration_time) or not self.access_token:
-            refresh_auth()
+            self.refresh_auth()
 
         headers = {'Authorization': f'Bearer {self.access_token}'}
        # print(f'---- [HEADERS] ----')
@@ -22,7 +22,7 @@ class Spotify:
                 print(f"[Error] -- GOING TOO FAST -- SLEEPING {timeout} seconds")
                 time.sleep(timeout)
 
-            refresh_auth()
+           self.refresh_auth()
             r = requests.get(url)
             if not (r.status_code == 200 or r.status_code == 204):
                 print("---- ERROR ----")
