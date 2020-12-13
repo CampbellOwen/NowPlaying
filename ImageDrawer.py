@@ -23,6 +23,8 @@ class EinkDrawer:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        print("Going to sleep")
+        epd.sleep()
         self.epd.Dev_exit()
 
     def draw(self, img):
@@ -34,8 +36,6 @@ class EinkDrawer:
         print("Drawing to display")
         epd.display(epd.getbuffer(one_bit), epd.getbuffer(blank))
 
-        print("Going to sleep")
-        epd.sleep()
 
 if __name__ == "__main__":
     with EinkDrawer() as drawer:
