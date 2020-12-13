@@ -35,7 +35,6 @@ def download_image(url, name):
                 album_height = current_song['album_image_height']
                 scale = height / album_height
                 img = img.resize((int(album_height * scale), int(album_height * scale)))
-                img.show()
                 img.save(album_file_name)
 
     else:
