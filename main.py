@@ -5,6 +5,7 @@ import os.path
 import subprocess
 import unicodedata
 import re
+import time
 
 import io
 
@@ -71,29 +72,42 @@ image_path = argv[2]
 api = S.Spotify(secrets.client_id, secrets.client_secret, secrets.refresh_token)
 pp = pprint.PrettyPrinter(indent=4)
 
-current_song = api.current_song()
-pp.pprint(current_song) 
+current_song = None
+sleep_time = 15
 
-# Download album art 
-if current_song is None:
-    exit(1)
+while True:
+    new_song = api.current_song()
+    if new_song is None or current_song == new_song:
+        current_song = new_song
+        print(f"Song hasn't changed, sleeping for {sleep_time}s")
+        time.sleep(sleep_time)
+        continue
+    current_song = new_song
+    pp.pprint(current_song) 
 
-image_name = f'{current_song["artist"]} - {current_song["album"]}'
-image_name = download_image(current_song['album_url'], image_name)
+    # Download album art 
+    if current_song is None:
+        exit(1)
 
-if image_name is None:
-    exit(1)
+    image_name = f'{current_song["artist"]} - {current_song["album"]}'
+    image_name = download_image(current_song['album_url'], image_name)
 
-print('[INFO] -- Dithering album art')
-dither_return_code = subprocess.call([dither_path, image_name, image_name])
-if not dither_return_code == 0:
-    print('[ERROR] -- Dithering failed')
-    exit(1)
-        
+    if image_name is None:
+        exit(1)
 
-img = BasicInterface.create(image_name, current_song)
+    print('[INFO] -- Dithering album art')
+    dither_return_code = subprocess.call([dither_path, image_name, image_name])
+    if not dither_return_code == 0:
+        print('[ERROR] -- Dithering failed')
+        exit(1)
+            
 
-if platform == "win32":
-    BasicDrawer.draw(img)
-else:
-    EinkDrawer.draw(img)
+    img = BasicInterface.create(image_name, current_song)
+
+    if platform == "win32":
+        BasicDrawer.draw(img)
+    else:
+        EinkDrawer.draw(img)
+    
+    print(f"Sleeping for {sleep_time}s")
+    time.sleep(sleep_time)
