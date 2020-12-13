@@ -12,6 +12,7 @@ from sys import argv
 
 class EinkDrawer:
     def init():
+        print("Initializing display")
         epd = waveshare.EPD()
         epd.init()
         epd.Clear()
@@ -20,7 +21,6 @@ class EinkDrawer:
         one_bit = img.convert("1", dither=Image.NONE)
         blank = Image.new("1", img.size, 255)
 
-        print("Initializing display")
         epd = waveshare.EPD()
 
         print("Drawing to display")
@@ -32,5 +32,8 @@ class EinkDrawer:
         epd.Dev_exit()
 
 if __name__ == "__main__":
+    EinkDrawer.init()
     with Image.open(argv[1]) as img:
         EinkDrawer.draw(img)
+    print("Calling cleanup")
+    EinkDrawer.clean_up()
