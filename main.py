@@ -56,12 +56,9 @@ pp = pprint.PrettyPrinter(indent=4)
 current_song = None
 sleep_time = 5
 
+interface_generator = BasicInterface()
 
-drawingClass = BasicDrawer() if platform == "win32" else EinkDrawer()
-print(drawingClass)
-
-with drawingClass as drawer: 
-    print(drawer)
+with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer: 
     while True:
         new_song = api.current_song()
         if new_song is None or current_song == new_song:
@@ -89,7 +86,7 @@ with drawingClass as drawer:
             exit(1)
                 
 
-        img = BasicInterface.create(image_name, current_song)
+        img = interface_generator.create(image_name, current_song)
 
         drawer.draw(img)
         
