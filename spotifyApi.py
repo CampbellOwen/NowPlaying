@@ -76,6 +76,7 @@ class Spotify:
         biggest_image = sorted(album_urls, key=lambda img: img[0], reverse=True)
 
         data['album_url'] = biggest_image[0][1]
+        data['album_image_height'] = int(biggest_image[0][0])
 
         return data
 
