@@ -69,7 +69,7 @@ class BasicInterface:
             song_size = song_font.getsize(song_text)
             song_pos = (img_target_width - album_padding - song_size[0], int((img_target_height / 2) - (song_size[1] / 2)))
 
-            song_shadow_offset = 5
+            song_shadow_offset = 3
             song_shadow_pos = (song_pos[0] + song_shadow_offset, song_pos[1] - song_shadow_offset)
 
             song_rect_size = (song_size[0] + (2 * album_padding), int((song_size[1] / 2) + (album_padding / 2)) )
