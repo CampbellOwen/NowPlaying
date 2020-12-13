@@ -6,6 +6,8 @@ import subprocess
 import unicodedata
 import re
 
+from sys import platform
+
 from wand.image import Image
 from wand.display import display
 from wand.color import Color
@@ -41,7 +43,10 @@ if not os.path.exists(album_file_name_png):
         print(f'[{current_song["album"]}] --  image saved')
 
         print('[INFO] -- Converting album art to png')
-        convert_return_code = subprocess.call(['magick', 'convert', album_file_name, album_file_name_png])
+        if platform == "win32":
+            convert_return_code = subprocess.call(['magick', 'convert', album_file_name, album_file_name_png])
+        else:
+            convert_return_code = subprocess.call(['convert', album_file_name, album_file_name_png])
         if not convert_return_code == 0:
             print('[ERROR] -- Converting failed')
             exit()
