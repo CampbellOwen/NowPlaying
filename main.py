@@ -7,6 +7,7 @@ import unicodedata
 import re
 
 from sys import platform
+from sys import argv
 
 from wand.image import Image
 from wand.display import display
@@ -16,6 +17,12 @@ from wand.font import Font
 
 import secrets
 
+if len(argv) < 3 :
+    print("Provide arguments for dither command and image folder")
+    exit(1)
+
+dither_path = argv[1]
+image_path = argv[2]
 
 api = S.Spotify(secrets.client_id, secrets.client_secret, secrets.refresh_token)
 pp = pprint.PrettyPrinter(indent=4)
@@ -32,8 +39,8 @@ image_name = unicodedata.normalize('NFKD', image_name)
 image_name = re.sub('[^\w\s-]', '', image_name).strip().lower()
 image_name = re.sub('[-\s]+', '-', image_name)
 
-album_file_name = f'images/{image_name}.jpg'
-album_file_name_png = f'images/{image_name}.png'
+album_file_name = f'{image_path}/{image_name}.jpg'
+album_file_name_png = f'{image_path}/{image_name}.png'
 
 if not os.path.exists(album_file_name_png):
     code, response = api.make_request(current_song['album_url'])
@@ -52,7 +59,7 @@ if not os.path.exists(album_file_name_png):
             exit()
 
         print('[INFO] -- Dithering album art')
-        dither_return_code = subprocess.call(['dither.exe', album_file_name_png, album_file_name_png])
+        dither_return_code = subprocess.call([dither_path, album_file_name_png, album_file_name_png])
         if not dither_return_code == 0:
             print('[ERROR] -- Dithering failed')
             exit()
