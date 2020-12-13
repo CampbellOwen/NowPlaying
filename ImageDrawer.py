@@ -18,13 +18,12 @@ class EinkDrawer:
         epd.Dev_exit()
 
     def draw(img):
-        epd.init()
-
         one_bit = img.convert("1", dither=Image.NONE)
         blank = Image.new("1", img.size, 255)
 
         print("Initializing display")
         epd = waveshare.EPD()
+        epd.init()
 
         print("Drawing to display")
         epd.display(epd.getbuffer(one_bit), epd.getbuffer(blank))
