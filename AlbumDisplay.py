@@ -1,7 +1,6 @@
 from PIL import Image, ImageFont, ImageDraw, BdfFontFile
 
 def cut_text(max_width, font, text):
-
     (width, height) = font.getsize(text)
 
     if not width > max_width:
@@ -13,6 +12,31 @@ def cut_text(max_width, font, text):
     pos_in_string = int(len(text) * percent_over)
 
     return text[:pos_in_string] + "..."
+
+def line_wrap(max_width, font, text):
+    (width, height) = font.getsize(text)
+    if not width > max_width:
+        return text
+        
+    words = text.split(" ")
+
+    final_string = ""
+    curr_line = ""
+    for i, word in enumerate(words):
+        (word_width, word_height) = font.getsize(" " + word)
+        (curr_line_width, line_height) = font.getsize(curr_line)
+        
+        if (curr_line_width + word_width) >= max_width or word_width >= max_width:
+            if word_width >= max_width:
+                word = cut_text(max_width, font, word)
+            final_string += curr_line + "\n" + word + "\n"
+            curr_line = ""
+        else:
+            curr_line += word + " "
+
+    final_string += curr_line
+    return final_string
+
 
 class BasicInterface:
     def __init__(self):
@@ -79,13 +103,24 @@ class BasicInterface:
             song_rect_size = (song_size[0] + (2 * album_padding), int((song_size[1] / 2) + (album_padding / 2)) )
             song_rect_pos = (img_target_width - song_rect_size[0], int(img_target_height / 2))
 
-            red_draw.rectangle([song_rect_pos, (song_rect_pos[0] + song_rect_size[0] + 1, song_rect_pos[1] + song_rect_size[1] + 1)], fill=(0, 0, 0, 255))
+            song_rect_box = [song_rect_pos, (song_rect_pos[0] + song_rect_size[0] + 1, song_rect_pos[1] + song_rect_size[1] + 1)]
+
+            red_draw.rectangle(song_rect_box, fill=(0, 0, 0, 255))
             bw_draw.text(song_shadow_pos, song_text, font=song_font, fill=(255,255,255,255))
             bw_draw.text(song_pos, song_text, font=song_font, fill=(0,0,0,255))
 
             # To cut out the text in the red rect
             red_draw.text(song_shadow_pos, song_text, font=song_font, fill=(255,255,255,255))
             red_draw.text(song_pos, song_text, font=song_font, fill=(255,255,255,255))
+
+            # Draw Artist
+
+            artist_pos = (img.width + album_padding, int(song_rect_box[1][1] + album_padding))
+            artist_max_width = img_target_width - img.width - (2 * album_padding)
+            artist_text = line_wrap(artist_max_width, self.artist_font, song_info['artist'])
+            bw_draw.multiline_text(artist_pos, artist_text, font=self.artist_font, fill=(0,0,0,255), align="left")
+            print(f"ARTIST\n{artist_text}")
+
 
 
             bw_image = bg.copy()
