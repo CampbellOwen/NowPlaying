@@ -10,6 +10,8 @@ def cut_text(max_width, font, text):
     percent_over = max_width  / width
 
     pos_in_string = int(len(text) * percent_over)
+    if text[pos_in_string - 1] == " ":
+        pos_in_string -= 1
 
     return text[:pos_in_string] + "..."
 
@@ -120,6 +122,11 @@ class BasicInterface:
             artist_text = line_wrap(artist_max_width, self.artist_font, song_info['artist'])
             bw_draw.multiline_text(artist_pos, artist_text, font=self.artist_font, fill=(0,0,0,255), align="left", spacing=10)
             print(f"ARTIST\n{artist_text}")
+
+
+            # Draw track number
+
+
 
 
 
