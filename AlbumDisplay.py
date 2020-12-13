@@ -130,19 +130,21 @@ class BasicInterface:
             num_tracks = song_info['total_tracks']
 
             dot_size = 3
-            all_dots_height =  (dot_size * num_tracks) + ((num_tracks - 1) * 7)
+            dot_spacing = 7
+            all_dots_height =  (dot_size * num_tracks) + ((num_tracks - 1) * dot_spacing)
 
             available_height = song_pos[1]
 
-            dot_pos = (img.width + album_padding, int((available_height / 2) - (all_dots_height / 2)))
+            # dot_pos = (img.width + album_padding, int((available_height / 2) - (all_dots_height / 2)))
+            dot_pos = (img.width + album_padding, album_padding)
             for i in range(num_tracks):                    
                 fill = (255, 255, 255, 255)
                 if i+1 == track_number:
                     fill = (0, 0, 0, 255)
-                dot_rect = [dot_pos, (dot_pos[0] + 3, dot_pos[1] + 3)]
+                dot_rect = [dot_pos, (dot_pos[0] + dot_size, dot_pos[1] + dot_size)]
                 bw_draw.ellipse(dot_rect, fill=fill, outline=(0,0,0,255))
 
-                dot_pos = (dot_pos[0], dot_pos[1] + 10)
+                dot_pos = (dot_pos[0], dot_pos[1] + dot_size + dot_spacing)
 
             bw_image = bg.copy()
             red_image = red.copy()
