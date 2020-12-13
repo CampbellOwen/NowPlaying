@@ -40,7 +40,7 @@ def line_wrap(max_width, font, text):
 
 class BasicInterface:
     def __init__(self):
-        self.artist_font = ImageFont.truetype('Consolas.ttf', size=36)
+        self.artist_font = ImageFont.truetype('Consolas.ttf', size=25)
         self.album_font = ImageFont.truetype('Consolas.ttf', size=25)
         self.song_font = ImageFont.truetype('ChicagoFLF.ttf', size=67)
         self.song_font_smaller = ImageFont.truetype('ChicagoFLF.ttf', size=40)
