@@ -75,11 +75,13 @@ pp = pprint.PrettyPrinter(indent=4)
 current_song = None
 sleep_time = 5
 
-if not platform == "win32":
-    EinkDrawer.init()
 
-while True:
-    try:
+drawingClass = BasicDrawer() if platform == "win32" else EinkDrawer()
+print(drawingClass)
+
+with drawingClass as drawer: 
+    print(drawer)
+    while True:
         new_song = api.current_song()
         if new_song is None or current_song == new_song:
             current_song = new_song
@@ -108,13 +110,7 @@ while True:
 
         img = BasicInterface.create(image_name, current_song)
 
-        if platform == "win32":
-            BasicDrawer.draw(img)
-        else:
-            EinkDrawer.draw(img)
+        drawer.draw(img)
         
         print(f"Sleeping for {sleep_time}s")
         time.sleep(sleep_time)
-    except KeyboardInterrupt:
-        if not platform == "win32":
-            EinkDrawer.clean_up()

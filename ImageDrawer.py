@@ -1,6 +1,10 @@
 
 class BasicDrawer:
-    def draw(img):
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass
+    def draw(self, img):
         img.show()
 
 
@@ -11,13 +15,17 @@ from PIL import Image
 from sys import argv
 
 class EinkDrawer:
-    def init():
+    def __enter__(self):
         print("Initializing display")
-        epd = waveshare.EPD()
-        epd.init()
-        epd.Clear()
+        self.epd = waveshare.EPD()
+        self.epd.init()
+        self.epd.Clear()
+        return self
 
-    def draw(img):
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.epd.Dev_exit()
+
+    def draw(self, img):
         one_bit = img.convert("1", dither=Image.NONE)
         blank = Image.new("1", img.size, 255)
 
@@ -28,12 +36,8 @@ class EinkDrawer:
 
         print("Going to sleep")
         epd.sleep()
-    def clean_up():
-        epd.Dev_exit()
 
 if __name__ == "__main__":
-    EinkDrawer.init()
-    with Image.open(argv[1]) as img:
-        EinkDrawer.draw(img)
-    print("Calling cleanup")
-    EinkDrawer.clean_up()
+    with EinkDrawer() as drawer:
+        with Image.open(argv[1]) as img:
+            drawer.draw(img)
