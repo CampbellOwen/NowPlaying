@@ -73,7 +73,10 @@ api = S.Spotify(secrets.client_id, secrets.client_secret, secrets.refresh_token)
 pp = pprint.PrettyPrinter(indent=4)
 
 current_song = None
-sleep_time = 15
+sleep_time = 5
+
+if not platform == "win32":
+    EinkDrawer.init()
 
 while True:
     new_song = api.current_song()
