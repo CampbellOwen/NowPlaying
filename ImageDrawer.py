@@ -3,7 +3,7 @@ class BasicDrawer:
     def draw(img):
         img.show()
 
-from waveshare_epd import epd5in83bc as waveshare
+from lib.waveshare_epd import epd5in83bc as waveshare
 import time
 
 class EinkDrawer:
