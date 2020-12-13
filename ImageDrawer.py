@@ -18,6 +18,7 @@ class EinkDrawer:
         epd.Dev_exit()
 
     def draw(img):
+        epd.init()
 
         one_bit = img.convert("1", dither=Image.NONE)
         blank = Image.new("1", img.size, 255)
