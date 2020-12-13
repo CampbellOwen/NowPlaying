@@ -79,6 +79,10 @@ class BasicInterface:
             bw_draw.text(song_shadow_pos, song_text, font=song_font, fill=(255,255,255,255))
             bw_draw.text(song_pos, song_text, font=song_font, fill=(0,0,0,255))
 
+            # To cut out the text in the red rect
+            red_draw.text(song_shadow_pos, song_text, font=song_font, fill=(255,255,255,255))
+            red_draw.text(song_pos, song_text, font=song_font, fill=(255,255,255,255))
+
 
             bw_image = bg.copy()
             red_image = red.copy()
