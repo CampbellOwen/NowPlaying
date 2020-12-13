@@ -17,14 +17,14 @@ from sys import argv
 
 class EinkDrawer:
     def __enter__(self):
-        print("Initializing display")
+        print("[INFO][EINK] -- Initializing display")
         self.epd = waveshare.EPD()
         self.epd.init()
         self.epd.Clear()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        print("Going to sleep")
+        print("[INFO][EINK] -- Going to sleep")
         self.epd.sleep()
         self.epd.Dev_exit()
 
@@ -34,7 +34,7 @@ class EinkDrawer:
 
         epd = waveshare.EPD()
 
-        print("Drawing to display")
+        print("[INFO][EINK] -- Drawing to display")
         epd.display(epd.getbuffer(one_bit_bw), epd.getbuffer(one_bit_red))
 
 

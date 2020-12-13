@@ -17,23 +17,24 @@ class Spotify:
         
         r = requests.get(url, headers=headers)
         if not (r.status_code == 200 or r.status_code == 204):
+            print(f"[ERROR][SPOTIFY] -- Request returned status code {r.status_code}")
+            print(f'[ERROR][SPOTIFY] -- Request returned {r.text}')
             if r.status_code == 429:
                 timeout = int(r.headers['retry-after'])
-                print(f"[Error] -- GOING TOO FAST -- SLEEPING {timeout} seconds")
+                print(f"[ERROR][SPOTIFY] -- Rate limited, waiting {timeout} seconds")
                 time.sleep(timeout)
 
             self.refresh_auth()
             r = requests.get(url)
             if not (r.status_code == 200 or r.status_code == 204):
-                print("---- ERROR ----")
-                print(f"[STATUS_CODE] -- {r.status_code}")
-                print(f'[CONTENT] -- {r.text}')
+                print(f"[ERROR][SPOTIFY] -- Request returned status code {r.status_code}")
+                print(f'[ERROR][SPOTIFY] -- Request returned {r.text}')
                 return
 
         return r.status_code, r
     
     def refresh_auth(self):
-        print("---- REFRESHING AUTH CODE ----")
+        print("[INFO][SPOTIFY] -- Refreshing auth token")
         hashed_client_code = base64.b64encode(f'{self.client_id}:{self.client_secret}'.encode('utf-8'))
         #print(f"[HASHED_CLIENT_CODE] -- {hashed_client_code}")
 
@@ -49,16 +50,15 @@ class Spotify:
         r = requests.post("https://accounts.spotify.com/api/token", data=payload, headers=headers)
         
         if not r.status_code == 200:
-            print("---- ERROR ----")
-            print(f"[STATUS_CODE] -- {r.status_code}")
-            print(f'[CONTENT] -- {r.text}')
+            print(f"[ERROR][SPOTIFY] -- Request returned status code {r.status_code}")
+            print(f'[ERROR][SPOTIFY] -- Request returned {r.text}')
             return
 
         result = r.json()
         self.access_token = result['access_token']
         self.expiration_time = int(result['expires_in']) + int(time.time())
-        print(f'[ACCESS_TOKEN] -- {self.access_token}')
-        print(f'[EXPIRY_TIME] -- {self.expiration_time}')
+        print(f'[INFO][SPOTIFY][ACCESS_TOKEN] -- {self.access_token}')
+        print(f'[INFO][SPOTIFY][EXPIRY_TIME] -- {self.expiration_time}')
 
     def current_song(self):
         code, result = self.make_request("https://api.spotify.com/v1/me/player/currently-playing")
@@ -68,7 +68,6 @@ class Spotify:
         result = result.json()
 
         data = {}
-        #data['artist'] = ', '.join([artist['name'] for artist in result['item']['artists']])
         data['artist'] = result['item']['artists'][0]['name']
         data['album'] = result['item']['album']['name']
         data['release_date'] = result['item']['album']['release_date']

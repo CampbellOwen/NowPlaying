@@ -121,11 +121,8 @@ class BasicInterface:
             artist_max_width = img_target_width - img.width - (2 * album_padding)
             artist_text = line_wrap(artist_max_width, self.artist_font, song_info['artist'])
             bw_draw.multiline_text(artist_pos, artist_text, font=self.artist_font, fill=(0,0,0,255), align="left", spacing=10)
-            print(f"ARTIST\n{artist_text}")
-
 
             # Draw track number
-
             track_number = song_info['track_number']
             num_tracks = song_info['total_tracks']
 

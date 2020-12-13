@@ -36,9 +36,10 @@ def download_image(url, name):
                 scale = height / album_height
                 img = img.resize((int(album_height * scale), int(album_height * scale)))
                 img.save(album_file_name)
+                print(f'[INFO][ALBUM ART] -- {image_name} downloaded')
 
     else:
-        print(f'[{album_file_name}] --  already exists')
+        print(f'[INFO][ALBUM ART] -- {image_name} found in cache')
 
     return album_file_name
 
@@ -51,7 +52,6 @@ dither_path = argv[1]
 image_path = argv[2]
 
 api = S.Spotify(secrets.client_id, secrets.client_secret, secrets.refresh_token)
-pp = pprint.PrettyPrinter(indent=4)
 
 current_song = None
 sleep_time = 5
@@ -60,14 +60,14 @@ interface_generator = BasicInterface()
 
 with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer: 
     while True:
+        print(f"[INFO][SPOTIFY] -- Refreshing current song")
         new_song = api.current_song()
         if new_song is None or current_song == new_song:
             current_song = new_song
-            print(f"Song hasn't changed, sleeping for {sleep_time}s")
             time.sleep(sleep_time)
             continue
         current_song = new_song
-        pp.pprint(current_song) 
+        print(f"[INFO][SPOTIFY][CURRENT SONG] -- {current_song['song']} - {current_song['album']} - {current_song['artist']}")
 
         # Download album art 
         if current_song is None:
@@ -79,10 +79,10 @@ with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer:
         if image_name is None:
             exit(1)
 
-        print('[INFO] -- Dithering album art')
+        print('[INFO][DITHERING] -- Dithering album art')
         dither_return_code = subprocess.call([dither_path, image_name, image_name])
         if not dither_return_code == 0:
-            print('[ERROR] -- Dithering failed')
+            print('[ERROR][DITHERING] -- Dithering failed')
             exit(1)
                 
 
@@ -90,5 +90,4 @@ with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer:
 
         drawer.draw(bw, red)
         
-        print(f"Sleeping for {sleep_time}s")
         time.sleep(sleep_time)
