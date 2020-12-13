@@ -45,7 +45,7 @@ class BasicInterface:
             year_text_size = self.album_font.getsize(year)
             
             album_padding = 15 
-            album_max_width = img_target_width - (album_padding * 2) - (year_text_size[1] + album_padding)
+            album_max_width = img_target_width - (album_padding * 2) - (year_text_size[0] + album_padding)
             album_text = cut_text(album_max_width, self.album_font, song_info['album'])
 
             album_y = album_height + ((img_target_height - album_height) / 2)
