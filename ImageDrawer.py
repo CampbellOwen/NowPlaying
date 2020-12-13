@@ -6,7 +6,7 @@ class BasicDrawer:
         pass
     def draw(self, img, red):
         img.show()
-        red.show()
+        # red.show()
 
 
 from sys import platform
@@ -29,7 +29,7 @@ class EinkDrawer:
         self.epd.Dev_exit()
 
     def draw(self, bw, red):
-        one_bit_bw = img.convert("1", dither=Image.NONE)
+        one_bit_bw = bw.convert("1", dither=Image.NONE)
         one_bit_red = red.convert("1", dither=Image.NONE)
 
         epd = waveshare.EPD()
