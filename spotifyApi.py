@@ -17,6 +17,11 @@ class Spotify:
         
         r = requests.get(url, headers=headers)
         if not (r.status_code == 200 or r.status_code == 204):
+            if r.status_code == 429:
+                timeout = int(r.headers['retry-after'])
+                print(f"[Error] -- GOING TOO FAST -- SLEEPING {timeout} seconds")
+                time.sleep(timeout)
+
             refresh_auth()
             r = requests.get(url)
             if not (r.status_code == 200 or r.status_code == 204):
