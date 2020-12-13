@@ -95,5 +95,5 @@ img = BasicInterface.create(image_name, current_song)
 
 if platform == "win32":
     BasicDrawer.draw(img)
-else
+else:
     EinkDrawer.draw(img)

@@ -10,8 +10,8 @@ from sys import argv
 class EinkDrawer:
     def draw(img):
 
-        one_bit = img.convert(1, dither=Image.NONE)
-        blank = Image.new(1, img.size, 255)
+        one_bit = img.convert("1", dither=Image.NONE)
+        blank = Image.new("1", img.size, 255)
 
         print("Initializing display")
         epd = waveshare.EPD()
