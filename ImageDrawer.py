@@ -3,7 +3,10 @@ class BasicDrawer:
     def draw(img):
         img.show()
 
-from lib.waveshare_epd import epd5in83bc as waveshare
+
+from sys import platform
+if not platform == "win32":
+    from lib.waveshare_epd import epd5in83bc as waveshare
 from PIL import Image
 from sys import argv
 
