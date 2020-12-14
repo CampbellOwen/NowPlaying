@@ -15,6 +15,7 @@ class LogCategory(Enum):
     DITHERING = 2
     EINK = 3
     ALBUMART = 4
+    SONG = 5
 
     @classmethod
     def max_width(cls):

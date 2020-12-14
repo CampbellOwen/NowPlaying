@@ -71,7 +71,7 @@ with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer:
             continue
         current_song = new_song
         # print(f"[INFO][SPOTIFY] -- {current_song['song']} - {current_song['album']} - {current_song['artist']}")
-        log(LogLevel.INFO, LogCategory.SPOTIFY, f"{current_song['song']} - {current_song['album']} - {current_song['artist']}")
+        log(LogLevel.INFO, LogCategory.SONG, f"{current_song['song']} - {current_song['album']} - {current_song['artist']}")
 
         # Download album art 
         if current_song is None:
