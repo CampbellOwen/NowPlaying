@@ -14,6 +14,7 @@ from sys import argv
 
 from AlbumDisplay import BasicInterface
 from ImageDrawer import BasicDrawer, EinkDrawer
+from Log import LogLevel, LogCategory, log
 
 from PIL import Image
 
@@ -36,10 +37,11 @@ def download_image(url, name):
                 scale = height / album_height
                 img = img.resize((int(album_height * scale), int(album_height * scale)))
                 img.save(album_file_name)
-                print(f'[INFO][ALBUM ART] -- {image_name} downloaded')
+                log(LogLevel.INFO, LogCategory.ALBUMART, f"{image_name} downloaded")
 
     else:
-        print(f'[INFO][ALBUM ART] -- {image_name} found in cache')
+        #print(f'[INFO][ALBUM ART] -- {image_name} found in cache')
+        log(LogLevel.INFO, LogCategory.ALBUMART, f"{image_name} found in cache")
 
     return album_file_name
 
@@ -60,14 +62,16 @@ interface_generator = BasicInterface()
 
 with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer: 
     while True:
-        print(f"[INFO][SPOTIFY] -- Refreshing current song")
+        # print(f"[INFO][SPOTIFY] -- Refreshing current song")
+        log(LogLevel.INFO, LogCategory.SPOTIFY, "Refreshing current song")
         new_song = api.current_song()
         if new_song is None or current_song == new_song:
             current_song = new_song
             time.sleep(sleep_time)
             continue
         current_song = new_song
-        print(f"[INFO][SPOTIFY][CURRENT SONG] -- {current_song['song']} - {current_song['album']} - {current_song['artist']}")
+        # print(f"[INFO][SPOTIFY] -- {current_song['song']} - {current_song['album']} - {current_song['artist']}")
+        log(LogLevel.INFO, LogCategory.SPOTIFY, f"{current_song['song']} - {current_song['album']} - {current_song['artist']}")
 
         # Download album art 
         if current_song is None:
@@ -79,10 +83,12 @@ with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer:
         if image_name is None:
             exit(1)
 
-        print('[INFO][DITHERING] -- Dithering album art')
+        # print('[INFO][DITHERING] -- Dithering album art')
+        log(LogLevel.INFO, LogCategory.DITHERING, "Dithering album art")
         dither_return_code = subprocess.call([dither_path, image_name, image_name])
         if not dither_return_code == 0:
-            print('[ERROR][DITHERING] -- Dithering failed')
+            # print('[ERROR][DITHERING] -- Dithering failed')
+            log(LogLevel.ERROR, LogCategory.DITHERING, "Dithering failed")
             exit(1)
                 
 
