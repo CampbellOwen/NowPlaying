@@ -9,22 +9,22 @@ class BasicDrawer:
         red.show()
 
 
-from sys import platform
+from sys import argv, platform
 if not platform == "win32":
     from lib.waveshare_epd import epd5in83bc as waveshare
 from PIL import Image
-from sys import argv
+from Log import log, LogCategory, LogLevel
 
 class EinkDrawer:
     def __enter__(self):
-        print("[INFO][EINK] -- Initializing display")
+        log(LogLevel.INFO, LogCategory.EINK, "Initializing display")
         self.epd = waveshare.EPD()
         self.epd.init()
         self.epd.Clear()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        print("[INFO][EINK] -- Going to sleep")
+        log(LogLevel.INFO, LogCategory.EINK, "Going to sleep")
         self.epd.sleep()
         self.epd.Dev_exit()
 
@@ -34,7 +34,7 @@ class EinkDrawer:
 
         epd = waveshare.EPD()
 
-        print("[INFO][EINK] -- Drawing to display")
+        log(LogLevel.INFO, LogCategory.EINK, "Drawing to display")
         epd.display(epd.getbuffer(one_bit_bw), epd.getbuffer(one_bit_red))
 
 
