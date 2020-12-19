@@ -36,7 +36,7 @@ class Spotify:
                 # print(f'[ERROR][SPOTIFY] -- Request returned {r.text}')
                 log(LogLevel.ERROR, LogCategory.SPOTIFY, f"Request returned status code {r.status_code}")
                 log(LogLevel.ERROR, LogCategory.SPOTIFY, f"Request returned {r.text}")
-                return
+                return r.status_code, r
 
         return r.status_code, r
     
