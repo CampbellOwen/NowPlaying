@@ -47,10 +47,6 @@ class BasicInterface:
         self.song_font = ImageFont.truetype('ChicagoFLF.ttf', size=67)
         self.song_font_smaller = ImageFont.truetype('ChicagoFLF.ttf', size=40)
 
-        # with open('cherry-13-r.bdf', 'rb') as fp:
-            # BdfFontFile.BdfFontFile(fp).save('cherry-13-r.pil')
-        # self.album_font = ImageFont.load('cherry-13-r.pil')
-
     def create(self, album_img, song_info):
         img_target_width = 600
         img_target_height = 448
@@ -132,7 +128,6 @@ class BasicInterface:
 
             available_height = song_pos[1]
 
-            # dot_pos = (img.width + album_padding, int((available_height / 2) - (all_dots_height / 2)))
             dot_pos = (img.width + album_padding, album_padding)
             for i in range(num_tracks):                    
                 fill = (255, 255, 255, 255)
