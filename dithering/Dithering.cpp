@@ -33,7 +33,7 @@ double toGammaExpanded(uint8_t c)
 
 double gammaCompress(double c)
 {
-	return c <= 0.0031308 ? c * 12.92 : (1.055 * pow(c, (1 / 2.4))) - 0.055;
+	return c <= 0.0031308 ? c * 12.92 : (1.055 * pow(c, (1 / 2.4))) - 0.055; // yo wat
 }
 
 double toGrayScale(uint8_t r, uint8_t g, uint8_t b)
