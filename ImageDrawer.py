@@ -11,7 +11,7 @@ class BasicDrawer:
 
 from sys import argv, platform
 if not platform == "win32":
-    from lib.waveshare_epd import epd5in83bc as waveshare
+    from lib.waveshare_epd import epd5in83b_V2 as waveshare
 from PIL import Image
 from Log import log, LogCategory, LogLevel
 
