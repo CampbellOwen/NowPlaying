@@ -96,7 +96,8 @@ image_path = argv[2]
 api = S.Spotify(secrets.client_id, secrets.client_secret, secrets.refresh_token)
 
 current_song = None
-sleep_time = 5
+sleep_active = 5
+sleep_inactive = 15
 
 dither = dither_function(dither_path, image_path)
 
@@ -108,6 +109,7 @@ with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer:
         log(LogLevel.INFO, LogCategory.SPOTIFY, "Refreshing current song")
         new_song = api.current_song()
         if new_song is None or current_song == new_song:
+            sleep_time = sleep_inactive if new_song is None else sleep_active
             current_song = new_song
             time.sleep(sleep_time)
             continue
@@ -136,4 +138,4 @@ with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer:
         drawer.draw(bw, red)
         counter += 1
         
-        time.sleep(sleep_time)
+        time.sleep(sleep_active)
