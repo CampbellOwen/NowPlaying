@@ -83,7 +83,7 @@ class MirroredInterface:
 
         self.song_font = 'fonts/ChicagoFLF.ttf'
         self.song_font_jp = 'fonts/KosugiMaru.ttf'
-        self.song_font_sizes = [70 - x for x in range(0, 31, 2)]
+        self.song_font_sizes = [x for x in range(70, 42, -2)]
 
         self.artist_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=25)
         self.album_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=25)
@@ -132,12 +132,8 @@ class MirroredInterface:
             song_y = int(red_bar_middle - (song_size[1] / 2))
             song_pos = (song_x, song_y)
 
-
-            shadow_offset = 5
+            shadow_offset = int(song_size[1] * (5 / 85))
             album_padding = 10
-
-
-
 
             album_font = get_font(self.album_font, self.album_font_jp, self.album_font_sizes, song_info['album'], 99999)
 
@@ -145,15 +141,15 @@ class MirroredInterface:
             year_text_size = album_font.getsize(year)
             spacing_size = album_font.getsize(", ")
 
-            album_pos = (padding, red_bar_middle + padding + shadow_offset)
-
+            album_pos = (padding, red_bar_middle + padding)
 
             allowed_album_width = red.width - (2 * padding) - year_text_size[0] - spacing_size[0]
             album_text = cut_text(allowed_album_width, album_font, song_info['album'])
 
-
-
-            red_bar_rectangle = [(0, song_y), (bw.width, album_pos[1] + year_text_size[1] + padding)]
+            red_bar_rectangle = [
+                (0, song_y), 
+                (bw.width, album_pos[1] + year_text_size[1] + padding)
+            ]
             red_draw.rectangle(red_bar_rectangle, fill=0)
             bw_draw.rectangle(red_bar_rectangle, fill=255)
 
