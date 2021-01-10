@@ -139,10 +139,14 @@ class BasicInterface:
 
             # Draw Artist
 
+            artist_font = self.artist_font
+            if not font_supports_text('fonts/Consolas.ttf', song_info['artist']):
+                artist_font = self.artist_font_jp
+
             artist_pos = (img.width + album_padding, int(song_rect_box[1][1] + album_padding))
             artist_max_width = self.img_width - img.width - (2 * album_padding)
-            artist_text = line_wrap(artist_max_width, self.artist_font, song_info['artist'])
-            bw_draw.multiline_text(artist_pos, artist_text, font=self.artist_font, fill=(0,0,0,255), align="left", spacing=10)
+            artist_text = line_wrap(artist_max_width, artist_font, song_info['artist'])
+            bw_draw.multiline_text(artist_pos, artist_text, font=artist_font, fill=(0,0,0,255), align="left", spacing=10)
 
             # Draw track number
             track_number = song_info['track_number']
