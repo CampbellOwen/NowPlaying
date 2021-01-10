@@ -107,11 +107,16 @@ class BasicInterface:
             # Draw Song Title
             max_title_width = int(0.9 * self.img_width)
             song_font = self.song_font
-            song_text = cut_text(max_title_width, self.song_font, song_info['song'])
+            useJpFont = not font_supports_text('fonts/Chicago.ttf', song_info['song'])
+            if useJpFont:
+                song_font = self.song_font_jp
+
+            song_text = cut_text(max_title_width, song_font, song_info['song'])
+
 
             if not song_text == song_info['song']:
                 song_text = cut_text(max_title_width, self.song_font_smaller, song_info['song'])
-                song_font = self.song_font_smaller
+                song_font = self.song_font_smaller_jp if useJpFont else self.song_font_smaller 
 
             song_size = song_font.getsize(song_text)
             song_pos = (self.img_width - album_padding - song_size[0], int((self.img_height / 2) - (song_size[1] / 2)))
