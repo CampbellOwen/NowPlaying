@@ -8,6 +8,8 @@ class BasicDrawer:
         img.show()
         #red.show()
         return
+    def clear(self):
+        return
 
 
 from sys import argv, platform
@@ -33,10 +35,11 @@ class EinkDrawer:
         one_bit_bw = bw.convert("1", dither=Image.NONE)
         one_bit_red = red.convert("1", dither=Image.NONE)
 
-        epd = waveshare.EPD()
-
         log(LogLevel.INFO, LogCategory.EINK, "Drawing to display")
-        epd.display(epd.getbuffer(one_bit_bw), epd.getbuffer(one_bit_red))
+        self.epd.display(epd.getbuffer(one_bit_bw), epd.getbuffer(one_bit_red))
+
+    def clear(self):
+        self.epd.Clear()
 
 
 if __name__ == "__main__":

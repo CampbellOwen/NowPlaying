@@ -101,6 +101,7 @@ dither = dither_function(dither_path, image_path)
 interface_generator = MirroredInterface(dither, img_width, img_height)
 
 with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer: 
+    counter = 0
     while True:
         log(LogLevel.INFO, LogCategory.SPOTIFY, "Refreshing current song")
         new_song = api.current_song()
@@ -128,6 +129,11 @@ with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer:
 
         bw, red = interface_generator.create(image_file_name, current_song)
 
+
+        if counter > 20:
+            counter = 0
+            drawer.clear()
         drawer.draw(bw, red)
+        counter += 1
         
         time.sleep(sleep_time)
