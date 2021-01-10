@@ -173,8 +173,6 @@ class BasicInterface:
 
         self.artist_font = ImageFont.truetype('fonts/Consolas.ttf', size=25)
         self.album_font = ImageFont.truetype('fonts/Consolas.ttf', size=25)
-        #self.song_font = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=67)
-        #self.song_font_smaller = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=40)
 
         self.song_font = 'fonts/ChicagoFLF.ttf'
         self.song_font_jp = 'fonts/KosugiMaru.ttf'
@@ -182,8 +180,6 @@ class BasicInterface:
 
         self.artist_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=25)
         self.album_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=25)
-        # self.song_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=67)
-        # self.song_font_smaller_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=40)
 
         self.img_width = img_width
         self.img_height = img_height

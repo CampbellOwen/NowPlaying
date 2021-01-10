@@ -33,7 +33,7 @@ def get_file_name(name, image_path):
     return album_file_name
 
 
-def download_image(url, file_path):
+def download_image(api, url, file_path):
     if not os.path.exists(file_path):
         code, response = api.make_request(url)
         if code == 200:
@@ -99,7 +99,6 @@ current_song = None
 sleep_time = 5
 
 dither = dither_function(dither_path, image_path)
-interface_generator = BasicInterface(dither, img_width, img_height)
 
 interfaces = [BasicInterface(dither, img_width, img_height), MirroredInterface(dither, img_width, img_height)]
 
@@ -122,20 +121,17 @@ with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer:
         image_name = f'{current_song["artist"]} - {current_song["album"]}'
         image_file_name = get_file_name(image_name, image_path)
 
-        download_result = download_image(current_song['album_url'], image_file_name)
+        download_result = download_image(api, current_song['album_url'], image_file_name)
 
         if not download_result:
             log(LogLevel.ERROR, LogCategory.ALBUMART, "Error downloading image")
             exit(1)
 
-        #image_name = get_dithered_album(current_song, image_path, interface_generator.album_height)
-
-        # bw, red = interface_generator.create(image_file_name, current_song)
-
         bw, red = random.choice(interfaces).create(image_file_name, current_song)
 
         if counter > 20:
             counter = 0
+            # Hopefully this helps with the red bleeding into the black
             drawer.clear()
         drawer.draw(bw, red)
         counter += 1
