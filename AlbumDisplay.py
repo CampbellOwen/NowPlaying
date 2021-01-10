@@ -132,6 +132,8 @@ class MirroredInterface:
 
             bw_draw.text((song_pos[0] - shadow_offset, song_pos[1] + shadow_offset), song_text, font=song_font, fill=0)
             bw_draw.text((song_pos[0] + shadow_offset, song_pos[1] - shadow_offset), song_text, font=song_font, fill=255)
+            red_draw.text((song_pos[0] - shadow_offset, song_pos[1] + shadow_offset), song_text, font=song_font, fill=255)
+            red_draw.text((song_pos[0] + shadow_offset, song_pos[1] - shadow_offset), song_text, font=song_font, fill=255)
             
             red_draw.text(song_pos, song_text, font=song_font, fill=0)
             bw_draw.text(song_pos, song_text, font=song_font, fill=255)
