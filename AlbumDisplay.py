@@ -107,7 +107,7 @@ class BasicInterface:
             # Draw Song Title
             max_title_width = int(0.9 * self.img_width)
             song_font = self.song_font
-            useJpFont = not font_supports_text('fonts/Chicago.ttf', song_info['song'])
+            useJpFont = not font_supports_text('fonts/ChicagoFLF.ttf', song_info['song'])
             if useJpFont:
                 song_font = self.song_font_jp
 
