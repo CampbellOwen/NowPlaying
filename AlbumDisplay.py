@@ -227,7 +227,8 @@ class BasicInterface:
             bw_draw.text(year_pos, year, font=album_font, fill=(0,0,0,255))
 
             # Draw Song Title
-            max_title_width = int(0.9 * self.img_width)
+            # max_title_width = int(0.9 * self.img_width)
+            max_title_width = self.img_width - (img.width // 2)
 
             song_font = get_font(bw_draw, self.song_font, self.song_font_jp, self.song_font_sizes, song_info['song'], max_title_width)
             song_text = cut_text(bw_draw, max_title_width, song_font, song_info['song'])
