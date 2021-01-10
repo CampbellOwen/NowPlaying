@@ -6,6 +6,7 @@ import subprocess
 import unicodedata
 import re
 import time
+import random
 
 import io
 
@@ -100,6 +101,8 @@ sleep_time = 5
 dither = dither_function(dither_path, image_path)
 interface_generator = BasicInterface(dither, img_width, img_height)
 
+interfaces = [BasicInterface(dither, img_width, img_height), MirroredInterface(dither, img_width, img_height)]
+
 with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer: 
     counter = 0
     while True:
@@ -127,8 +130,9 @@ with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer:
 
         #image_name = get_dithered_album(current_song, image_path, interface_generator.album_height)
 
-        bw, red = interface_generator.create(image_file_name, current_song)
+        # bw, red = interface_generator.create(image_file_name, current_song)
 
+        bw, red = random.choice(interfaces).create(image_file_name, current_song)
 
         if counter > 20:
             counter = 0
