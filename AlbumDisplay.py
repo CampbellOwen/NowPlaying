@@ -132,9 +132,6 @@ class MirroredInterface:
 
             shadow_offset = 5
 
-            
-
-
             album_padding = 10
 
             album_pos = (padding, )
@@ -145,13 +142,13 @@ class MirroredInterface:
             bw_draw.rectangle(red_bar_rectangle, fill=255)
 
 
-            bw_draw.text(song_pos, song_text, font=song_font, fill=255, anchor="lm")
             bw_draw.text((song_pos[0] - shadow_offset, song_pos[1] + shadow_offset), song_text, font=song_font, fill=0, anchor='lm')
             bw_draw.text((song_pos[0] + shadow_offset, song_pos[1] - shadow_offset), song_text, font=song_font, fill=255, anchor='lm')
+            bw_draw.text(song_pos, song_text, font=song_font, fill=255, anchor="lm")
 
-            red_draw.text(song_pos, song_text, font=song_font, fill=0, anchor="lm")
             red_draw.text((song_pos[0] - shadow_offset, song_pos[1] + shadow_offset), song_text, font=song_font, fill=(255,255,255,255), anchor='lm')
             red_draw.text((song_pos[0] + shadow_offset, song_pos[1] - shadow_offset), song_text, font=song_font, fill=(255,255,255,255), anchor='lm')
+            red_draw.text(song_pos, song_text, font=song_font, fill=0, anchor="lm")
 
             bw_image = bw.copy()
             red_image = red.copy()
