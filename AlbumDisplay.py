@@ -75,20 +75,17 @@ class MirroredInterface:
     def __init__(self, dither_function, img_width, img_height):
         self.dither_function = dither_function
 
-        self.artist_font = ImageFont.truetype('fonts/Consolas.ttf', size=25)
+        self.artist_font = 'fonts/Consolas.ttf'
+        self.artist_font_jp = 'fonts/KosugiMaru.ttf'
+        self.artist_font_sizes = [25]
+
         self.album_font = "fonts/Consolas.ttf"
         self.album_font_jp = "fonts/KosugiMaru.ttf"
         self.album_font_sizes = [25]
 
         self.song_font = 'fonts/ChicagoFLF.ttf'
         self.song_font_jp = 'fonts/KosugiMaru.ttf'
-        self.song_font_sizes = [x for x in range(70, 45, -1)]
-
-        self.artist_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=25)
-        self.album_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=25)
-        # self.song_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=70)
-        # self.song_font_smaller_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=50)
-        # self.song_font_smallest_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=50)
+        self.song_font_sizes = [x for x in range(70, 44, -1)]
 
         self.img_width = img_width
         self.img_height = img_height
@@ -176,8 +173,11 @@ class BasicInterface:
 
         self.artist_font = ImageFont.truetype('fonts/Consolas.ttf', size=25)
         self.album_font = ImageFont.truetype('fonts/Consolas.ttf', size=25)
-        self.song_font = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=67)
-        self.song_font_smaller = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=40)
+        #self.song_font = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=67)
+        #self.song_font_smaller = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=40)
+
+        self.song_font = 'fonts/ChicagoFLF.ttf'
+        self.song_font_sizes = [x for x in range(67, 39, -1)]
 
         self.artist_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=25)
         self.album_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=25)
@@ -228,17 +228,9 @@ class BasicInterface:
 
             # Draw Song Title
             max_title_width = int(0.9 * self.img_width)
-            song_font = self.song_font
-            useJpFont = not font_supports_text('fonts/ChicagoFLF.ttf', song_info['song'])
-            if useJpFont:
-                song_font = self.song_font_jp
 
+            song_font = get_font(bw_draw, self.song_font, self.song_font_jp, self.song_font_sizes, song_info['song'], max_title_width)
             song_text = cut_text(bw_draw, max_title_width, song_font, song_info['song'])
-
-
-            if not song_text == song_info['song']:
-                song_text = cut_text(bw_draw, max_title_width, self.song_font_smaller, song_info['song'])
-                song_font = self.song_font_smaller_jp if useJpFont else self.song_font_smaller 
 
             song_size = song_font.getsize(song_text)
             song_pos = (self.img_width - album_padding - song_size[0], int((self.img_height / 2) - (song_size[1] / 2)))

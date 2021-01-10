@@ -98,7 +98,7 @@ current_song = None
 sleep_time = 5
 
 dither = dither_function(dither_path, image_path)
-interface_generator = MirroredInterface(dither, img_width, img_height)
+interface_generator = BasicInterface(dither, img_width, img_height)
 
 with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer: 
     counter = 0
