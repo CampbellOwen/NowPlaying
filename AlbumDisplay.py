@@ -131,7 +131,7 @@ class MirroredInterface:
             shadow_offset = max(3, round(song_size[1] * (5 / 85)))
             album_padding = 10
 
-            album_font = get_font(bw_draw, self.album_font, self.album_font_jp, self.album_font_sizes, song_info['album'], 99999)
+            album_font = get_font(bw_draw, self.album_font, self.album_font_jp, self.album_font_sizes, song_info['album'], 99999) # Don't scale, we have to add the year anyway
 
             year = song_info['release_date'][:4]
             year_text_size = album_font.getsize(year)
@@ -142,10 +142,27 @@ class MirroredInterface:
             allowed_album_width = red.width - (2 * padding) - year_text_size[0] - spacing_size[0]
             album_text = cut_text(bw_draw, allowed_album_width, album_font, song_info['album'])
 
-            red_bar_rectangle = [
-                (0, song_y), 
-                (bw.width, album_pos[1] + year_text_size[1] + padding)
-            ]
+            red_bar_bottom = album_pos[1] + year_text_size[1] + padding
+
+            red_bar_rectangle = [(0, song_y), (bw.width, red_bar_bottom)]
+
+
+            artist_mid_y = red_bar_bottom + ((bw.height -red_bar_bottom) // 2)
+            artist_width = allowed_width
+            artist_font = get_font(bw_draw, self.artist_font, self.artist_font_jp, self.artist_font_sizes, song_info['artist'], allowed_width) 
+
+            artist_text = cut_text(bw_draw, artist_width, artist_font, song_info['artist'])
+
+            artist_pos = (bw.width // 2, artist_mid_y)
+
+            left_x, left_y, right_x, right_y = bw_draw.textbbox(artist_pos, artist_text, font=artist_font, anchor='mm')
+
+            artist_bbox = [(left_x - padding, left_y - padding), (right_x + padding, right_y + padding)]
+
+            bw_draw.rectangle(artist_bbox, fill=255)
+            bw_draw.text(artist_pos, artist_text, font=artist_font, fill=0, anchor='mm')
+
+
             red_draw.rectangle(red_bar_rectangle, fill=0)
             bw_draw.rectangle(red_bar_rectangle, fill=255)
 
@@ -158,8 +175,6 @@ class MirroredInterface:
             red_draw.text(song_pos, song_text, font=song_font, fill=0, anchor="lm")
 
             red_draw.text(album_pos, f"{album_text}, {year}", font=album_font, fill=(255,255,255,255))
-
-            red.show()
 
             bw_image = bw.copy()
             red_image = red.copy()
