@@ -25,7 +25,7 @@ class Spotify:
                 time.sleep(timeout)
 
             self.refresh_auth()
-            r = requests.get(url)
+            r = requests.get(url, headers=headers)
             if not (r.status_code == 200 or r.status_code == 204):
                 log(LogLevel.ERROR, LogCategory.SPOTIFY, f"Request returned status code {r.status_code}")
                 log(LogLevel.ERROR, LogCategory.SPOTIFY, f"Request returned {r.text}")
