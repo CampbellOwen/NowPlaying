@@ -36,7 +36,7 @@ class EinkDrawer:
         one_bit_red = red.convert("1", dither=Image.NONE)
 
         log(LogLevel.INFO, LogCategory.EINK, "Drawing to display")
-        self.epd.display(epd.getbuffer(one_bit_bw), epd.getbuffer(one_bit_red))
+        self.epd.display(self.epd.getbuffer(one_bit_bw), self.epd.getbuffer(one_bit_red))
 
     def clear(self):
         self.epd.Clear()
