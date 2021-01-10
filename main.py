@@ -12,7 +12,7 @@ import io
 from sys import platform
 from sys import argv
 
-from AlbumDisplay import BasicInterface
+from AlbumDisplay import BasicInterface, MirroredInterface
 from ImageDrawer import BasicDrawer, EinkDrawer
 from Log import LogLevel, LogCategory, log
 
@@ -47,16 +47,7 @@ def download_image(url, file_path):
     return True
 
 
-def get_dithered_album(current_song, image_path, img_height):
-    image_name = f'{current_song["artist"]} - {current_song["album"]}'
-    image_file_name = get_file_name(image_name, image_path)
-
-    download_result = download_image(current_song['album_url'], image_file_name)
-
-    if not download_result:
-        log(LogLevel.ERROR, LogCategory.ALBUMART, "Error downloading image")
-        exit(1)
-
+def resize_image(image_path, target_height):
     album_height = current_song['album_image_height']
     scale = img_height / album_height
     working_image_path = f'{image_path}/curr.png'
@@ -66,6 +57,10 @@ def get_dithered_album(current_song, image_path, img_height):
         img = img.resize((int(album_height * scale), int(album_height * scale)))
         img.save(working_image_path)
 
+
+def get_dithered_album(current_song, image_path, img_height):
+
+
     log(LogLevel.INFO, LogCategory.DITHERING, "Dithering album art")
     dither_return_code = subprocess.call([dither_path, working_image_path, working_image_path])
     if not dither_return_code == 0:
@@ -74,6 +69,20 @@ def get_dithered_album(current_song, image_path, img_height):
 
 
     return working_image_path
+
+def dither_function(dither_path, image_path):
+    def dither(img):
+        working_image_path = f"{image_path}/temp.png" 
+        img.save(working_image_path)
+        log(LogLevel.INFO, LogCategory.DITHERING, "Dithering album art")
+        dither_return_code = subprocess.call([dither_path, working_image_path, working_image_path])
+        if not dither_return_code == 0:
+            log(LogLevel.ERROR, LogCategory.DITHERING, "Dithering failed")
+            exit(1)
+        return Image.open(working_image_path)
+
+
+    return dither
 
 
 if len(argv) < 3 :
@@ -88,7 +97,8 @@ api = S.Spotify(secrets.client_id, secrets.client_secret, secrets.refresh_token)
 current_song = None
 sleep_time = 5
 
-interface_generator = BasicInterface(img_width, img_height)
+dither = dither_function(dither_path, image_path)
+interface_generator = MirroredInterface(dither, img_width, img_height)
 
 with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer: 
     while True:
@@ -104,10 +114,19 @@ with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer:
         # Download album art 
         if current_song is None:
             exit(1)
+        
+        image_name = f'{current_song["artist"]} - {current_song["album"]}'
+        image_file_name = get_file_name(image_name, image_path)
 
-        image_name = get_dithered_album(current_song, image_path, interface_generator.album_height)
+        download_result = download_image(current_song['album_url'], image_file_name)
 
-        bw, red = interface_generator.create(image_name, current_song)
+        if not download_result:
+            log(LogLevel.ERROR, LogCategory.ALBUMART, "Error downloading image")
+            exit(1)
+
+        #image_name = get_dithered_album(current_song, image_path, interface_generator.album_height)
+
+        bw, red = interface_generator.create(image_file_name, current_song)
 
         drawer.draw(bw, red)
         

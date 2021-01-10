@@ -51,9 +51,104 @@ def line_wrap(max_width, font, text):
     final_string += curr_line
     return final_string
 
+def resize_image(image, target_height):
+    scale = target_height / image.height
+
+    #log(LogLevel.INFO, LogCategory.ALBUMART, "Resizing image")
+    return image.resize((int(image.width * scale), int(image.height * scale)))
+
+
+class MirroredInterface:
+    def __init__(self, dither_function, img_width, img_height):
+        self.dither_function = dither_function
+
+        self.artist_font = ImageFont.truetype('fonts/Consolas.ttf', size=25)
+        self.album_font = ImageFont.truetype('fonts/Consolas.ttf', size=25)
+        self.song_font = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=70)
+        self.song_font_smaller = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=40)
+
+        self.artist_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=25)
+        self.album_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=25)
+        self.song_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=60)
+        self.song_font_smaller_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=40)
+
+        self.img_width = img_width
+        self.img_height = img_height
+        self.album_height = img_height
+
+
+    def create(self, album_img, song_info):
+        bw_image = None
+        red_image = None
+
+        padding = 15
+
+        with Image.open(album_img) as album, Image.new('RGB', (self.img_width, self.img_height), color="white") as bw, Image.new('RGB', (self.img_width, self.img_height), color="white") as red:
+            album = resize_image(album, self.album_height)
+
+            album_x = int((bw.width / 2 ) - (album.width / 2))
+            bw.paste(album, (album_x, 0))
+
+            album_flipped = album.transpose(method=Image.FLIP_LEFT_RIGHT)
+            bw.paste(album_flipped, (album_x - album.width, 0))
+            
+            album_x = album_x + album.width
+            bw.paste(album_flipped, (album_x, 0))
+            bw = self.dither_function(bw)
+
+            bw_draw = ImageDraw.Draw(bw)
+            red_draw = ImageDraw.Draw(red)
+
+            red_bar_middle = int(3 * (bw.height / 5))
+
+            red_bar_height = int(bw.height / 6)
+            red_bar_rectangle = [(0, red_bar_middle - (red_bar_height // 2)), (bw.width, red_bar_middle + (red_bar_height // 2))]
+            red_draw.rectangle(red_bar_rectangle, fill=0)
+            bw_draw.rectangle(red_bar_rectangle, fill=255)
+
+            # Song title
+
+            allowed_width = bw.width - (2 * padding)
+            song_font = self.song_font
+            useJpFont = not font_supports_text('fonts/ChicagoFLF.ttf', song_info['song'])
+            if useJpFont:
+                song_font = self.song_font_jp
+
+            song_text = cut_text(allowed_width, song_font, song_info['song'])
+
+            if not song_text == song_info['song']:
+                print(song_text)
+                song_text = cut_text(allowed_width, self.song_font_smaller, song_info['song'])
+                song_font = self.song_font_smaller_jp if useJpFont else self.song_font_smaller 
+
+            song_size = song_font.getsize(song_text)
+            
+            song_x = int((red.width / 2) - (song_size[0] / 2))
+            song_y = int(red_bar_middle - (red_bar_height / 2) - (song_size[1] / 2))
+            song_pos = (song_x, song_y)
+
+
+            shadow_offset = 5
+
+            bw_draw.text((song_pos[0] - shadow_offset, song_pos[1] + shadow_offset), song_text, font=song_font, fill=0)
+            bw_draw.text((song_pos[0] + shadow_offset, song_pos[1] - shadow_offset), song_text, font=song_font, fill=255)
+            
+            red_draw.text(song_pos, song_text, font=song_font, fill=0)
+            bw_draw.text(song_pos, song_text, font=song_font, fill=255)
+
+            red.show()
+
+
+            bw_image = bw.copy()
+            red_image = red.copy()
+
+        return bw_image, red_image
+
 
 class BasicInterface:
-    def __init__(self, img_width, img_height):
+    def __init__(self, dither_function, img_width, img_height):
+        self.dither_function = dither_function
+
         self.artist_font = ImageFont.truetype('fonts/Consolas.ttf', size=25)
         self.album_font = ImageFont.truetype('fonts/Consolas.ttf', size=25)
         self.song_font = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=67)
@@ -75,6 +170,8 @@ class BasicInterface:
         bw_image = None
         red_image = None
         with Image.open(album_img) as img, Image.new('RGB', (self.img_width, self.img_height), color="white") as bg, Image.new('RGB', (self.img_width, self.img_height), color="white") as red:
+            img = resize_image(img, self.album_height)
+            img = self.dither_function(img)
             bg.paste(img)
 
             bw_draw = ImageDraw.Draw(bg)
@@ -138,7 +235,6 @@ class BasicInterface:
             red_draw.text(song_pos, song_text, font=song_font, fill=(255,255,255,255))
 
             # Draw Artist
-
             artist_font = self.artist_font
             if not font_supports_text('fonts/Consolas.ttf', song_info['artist']):
                 artist_font = self.artist_font_jp
