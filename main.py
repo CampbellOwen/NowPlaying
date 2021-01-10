@@ -32,40 +32,48 @@ def get_file_name(name, image_path):
     return album_file_name
 
 
-def download_image(url, file_path, img_height):
-    code, response = api.make_request(url)
-    if code == 200:
-        with Image.open(io.BytesIO(response.content)) as img:
-            album_height = current_song['album_image_height']
-            scale = img_height / album_height
-            img = img.resize((int(album_height * scale), int(album_height * scale)))
-            img.save(file_path)
-            log(LogLevel.INFO, LogCategory.ALBUMART, f"{file_path} downloaded")
+def download_image(url, file_path):
+    if not os.path.exists(file_path):
+        code, response = api.make_request(url)
+        if code == 200:
+            with Image.open(io.BytesIO(response.content)) as img:
+                img.save(file_path)
+                log(LogLevel.INFO, LogCategory.ALBUMART, f"{file_path} downloaded")
+        else:
+            return False
+    else:
+        log(LogLevel.INFO, LogCategory.ALBUMART, f"{file_path} found in cache")
 
     return True
 
 
-def get_dithered_album(current_song, img_height):
+def get_dithered_album(current_song, image_path, img_height):
     image_name = f'{current_song["artist"]} - {current_song["album"]}'
     image_file_name = get_file_name(image_name, image_path)
 
-    if not os.path.exists(image_file_name):
-        download_result = download_image(current_song['album_url'], image_file_name, img_height)
+    download_result = download_image(current_song['album_url'], image_file_name)
 
-        if not download_result:
-            log(LogLevel.ERROR, LogCategory.ALBUMART, "Error downloading image")
-            exit(1)
+    if not download_result:
+        log(LogLevel.ERROR, LogCategory.ALBUMART, "Error downloading image")
+        exit(1)
 
-        log(LogLevel.INFO, LogCategory.DITHERING, "Dithering album art")
-        dither_return_code = subprocess.call([dither_path, image_file_name, image_file_name])
-        if not dither_return_code == 0:
-            log(LogLevel.ERROR, LogCategory.DITHERING, "Dithering failed")
-            exit(1)
+    album_height = current_song['album_image_height']
+    scale = img_height / album_height
+    working_image_path = f'{image_path}/curr.png'
 
-    else:
-        log(LogLevel.INFO, LogCategory.ALBUMART, f"{image_file_name} found in cache")
+    log(LogLevel.INFO, LogCategory.ALBUMART, "Resizing image")
+    with Image.open(image_file_name) as img:
+        img = img.resize((int(album_height * scale), int(album_height * scale)))
+        img.save(working_image_path)
 
-    return image_file_name
+    log(LogLevel.INFO, LogCategory.DITHERING, "Dithering album art")
+    dither_return_code = subprocess.call([dither_path, working_image_path, working_image_path])
+    if not dither_return_code == 0:
+        log(LogLevel.ERROR, LogCategory.DITHERING, "Dithering failed")
+        exit(1)
+
+
+    return working_image_path
 
 
 if len(argv) < 3 :
@@ -97,7 +105,7 @@ with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer:
         if current_song is None:
             exit(1)
 
-        image_name = get_dithered_album(current_song, interface_generator.album_height)
+        image_name = get_dithered_album(current_song, image_path, interface_generator.album_height)
 
         bw, red = interface_generator.create(image_name, current_song)
 
