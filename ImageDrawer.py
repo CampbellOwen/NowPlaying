@@ -39,6 +39,7 @@ class EinkDrawer:
         self.epd.display(self.epd.getbuffer(one_bit_bw), self.epd.getbuffer(one_bit_red))
 
     def clear(self):
+        log(LogLevel.INFO, LogCategory.EINK, "Clearing display")
         self.epd.Clear()
 
 
