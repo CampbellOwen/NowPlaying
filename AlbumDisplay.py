@@ -48,10 +48,10 @@ class BasicInterface:
         self.song_font_smaller = ImageFont.truetype('ChicagoFLF.ttf', size=40)
 
     def create(self, album_img, song_info):
-        img_target_width = 600
-        img_target_height = 448
+        img_target_width = 648
+        img_target_height = 480
 
-        album_height = 396
+        album_height = 428
 
         caption_text = f'{song_info["song"]}\n{song_info["album"]}\n{song_info["artist"]}'
 
