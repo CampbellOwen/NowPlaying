@@ -12,23 +12,25 @@ def font_supports_text(font, text):
     return all([has_glyph(f, glyph) for glyph in text])
 
 
-def cut_text(max_width, font, text):
-    (width, height) = font.getsize(text)
+def cut_text(img_draw, max_width, font, text):
+    width = img_draw.textlength(text, font=font)
 
     if not width > max_width:
         return text
     
-    width += (font.getsize("...")[0])
+    width = img_draw.textlength(text + "...", font=font)
+
     percent_over = max_width  / width
 
     pos_in_string = int(len(text) * percent_over)
+
     if text[pos_in_string - 1] == " ":
         pos_in_string -= 1
 
     return text[:pos_in_string] + "..."
 
-def line_wrap(max_width, font, text):
-    (width, height) = font.getsize(text)
+def line_wrap(img_draw, max_width, font, text):
+    width = img_draw.textlength(text, font=font)
     if not width > max_width:
         return text
         
@@ -37,12 +39,11 @@ def line_wrap(max_width, font, text):
     final_string = ""
     curr_line = ""
     for i, word in enumerate(words):
-        (word_width, word_height) = font.getsize(" " + word)
-        (curr_line_width, line_height) = font.getsize(curr_line)
+        word_width = img_draw.textlength(" " + word, font=font)
         
-        if (curr_line_width + word_width) >= max_width or word_width >= max_width:
+        if (img_draw.textlength(f"{curr_line} {word}", font=font) >= max_width) or word_width >= max_width:
             if word_width >= max_width:
-                word = cut_text(max_width, font, word)
+                word = cut_text(img_draw, max_width, font, word)
             final_string += curr_line + "\n" + word + "\n"
             curr_line = ""
         else:
@@ -57,12 +58,12 @@ def resize_image(image, target_height):
     #log(LogLevel.INFO, LogCategory.ALBUMART, "Resizing image")
     return image.resize((int(image.width * scale), int(image.height * scale)))
 
-def get_font(font_name, fallback_name, sizes, text, allowed_width):
+def get_font(img_draw, font_name, fallback_name, sizes, text, allowed_width):
     if not font_supports_text(font_name, text):
         font_name = fallback_name
     for i, size in enumerate(sizes):
         font = ImageFont.truetype(font_name, size=size)
-        truncated = cut_text(allowed_width, font, text)
+        truncated = cut_text(img_draw, allowed_width, font, text)
         if truncated == text or i == len(sizes) - 1:
             return font
 
@@ -73,17 +74,13 @@ class MirroredInterface:
         self.dither_function = dither_function
 
         self.artist_font = ImageFont.truetype('fonts/Consolas.ttf', size=25)
-        #self.album_font = ImageFont.truetype('fonts/Consolas.ttf', size=25)
         self.album_font = "fonts/Consolas.ttf"
         self.album_font_jp = "fonts/KosugiMaru.ttf"
         self.album_font_sizes = [25]
-        # self.song_font = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=70)
-        # self.song_font_smaller = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=47)
-        # self.song_font_smallest = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=40)
 
         self.song_font = 'fonts/ChicagoFLF.ttf'
         self.song_font_jp = 'fonts/KosugiMaru.ttf'
-        self.song_font_sizes = [x for x in range(70, 42, -2)]
+        self.song_font_sizes = [x for x in range(70, 42, -1)]
 
         self.artist_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=25)
         self.album_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=25)
@@ -123,8 +120,8 @@ class MirroredInterface:
             # Song title
 
             allowed_width = bw.width - (2 * padding)
-            song_font = get_font(self.song_font, self.song_font_jp, self.song_font_sizes, song_info['song'], allowed_width)
-            song_text = cut_text(allowed_width, song_font, song_info['song'])
+            song_font = get_font(bw_draw, self.song_font, self.song_font_jp, self.song_font_sizes, song_info['song'], allowed_width)
+            song_text = cut_text(bw_draw, allowed_width, song_font, song_info['song'])
 
             song_size = song_font.getsize(song_text)
             
@@ -135,7 +132,7 @@ class MirroredInterface:
             shadow_offset = max(3, round(song_size[1] * (5 / 85)))
             album_padding = 10
 
-            album_font = get_font(self.album_font, self.album_font_jp, self.album_font_sizes, song_info['album'], 99999)
+            album_font = get_font(bw_draw, self.album_font, self.album_font_jp, self.album_font_sizes, song_info['album'], 99999)
 
             year = song_info['release_date'][:4]
             year_text_size = album_font.getsize(year)
@@ -144,7 +141,7 @@ class MirroredInterface:
             album_pos = (padding, red_bar_middle + padding)
 
             allowed_album_width = red.width - (2 * padding) - year_text_size[0] - spacing_size[0]
-            album_text = cut_text(allowed_album_width, album_font, song_info['album'])
+            album_text = cut_text(bw_draw, allowed_album_width, album_font, song_info['album'])
 
             red_bar_rectangle = [
                 (0, song_y), 
@@ -216,7 +213,7 @@ class BasicInterface:
             
             album_padding = 15 
             album_max_width = self.img_width - (album_padding * 2) - (year_text_size[0] + album_padding)
-            album_text = cut_text(album_max_width, album_font, song_info['album'])
+            album_text = cut_text(bw_draw, album_max_width, album_font, song_info['album'])
 
             album_y = self.album_height + ((self.img_height - self.album_height) / 2)
             album_pos = (15, int(album_y - (album_text_size[1] / 2)))
@@ -234,11 +231,11 @@ class BasicInterface:
             if useJpFont:
                 song_font = self.song_font_jp
 
-            song_text = cut_text(max_title_width, song_font, song_info['song'])
+            song_text = cut_text(bw_draw, max_title_width, song_font, song_info['song'])
 
 
             if not song_text == song_info['song']:
-                song_text = cut_text(max_title_width, self.song_font_smaller, song_info['song'])
+                song_text = cut_text(bw_draw, max_title_width, self.song_font_smaller, song_info['song'])
                 song_font = self.song_font_smaller_jp if useJpFont else self.song_font_smaller 
 
             song_size = song_font.getsize(song_text)
@@ -267,7 +264,7 @@ class BasicInterface:
 
             artist_pos = (img.width + album_padding, int(song_rect_box[1][1] + album_padding))
             artist_max_width = self.img_width - img.width - (2 * album_padding)
-            artist_text = line_wrap(artist_max_width, artist_font, song_info['artist'])
+            artist_text = line_wrap(bw_draw, artist_max_width, artist_font, song_info['artist'])
             bw_draw.multiline_text(artist_pos, artist_text, font=artist_font, fill=(0,0,0,255), align="left", spacing=10)
 
             # Draw track number
