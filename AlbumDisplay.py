@@ -73,7 +73,10 @@ class MirroredInterface:
         self.dither_function = dither_function
 
         self.artist_font = ImageFont.truetype('fonts/Consolas.ttf', size=25)
-        self.album_font = ImageFont.truetype('fonts/Consolas.ttf', size=25)
+        #self.album_font = ImageFont.truetype('fonts/Consolas.ttf', size=25)
+        self.album_font = "fonts/Consolas.ttf"
+        self.album_font_jp = "fonts/KosugiMaru.ttf"
+        self.album_font_sizes = [25]
         # self.song_font = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=70)
         # self.song_font_smaller = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=47)
         # self.song_font_smallest = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=40)
@@ -131,16 +134,28 @@ class MirroredInterface:
 
 
             shadow_offset = 5
-
             album_padding = 10
 
-            album_pos = (padding, )
 
-            red_bar_height = int(bw.height / 6)
-            red_bar_rectangle = [(0, red_bar_middle - (red_bar_height // 2)), (bw.width, red_bar_middle + (red_bar_height // 2))]
+
+
+            album_font = get_font(self.album_font, self.album_font_jp, self.album_font_sizes, song_info['album'], 99999)
+
+            year = song_info['release_date'][:4]
+            year_text_size = album_font.getsize(year)
+            spacing_size = album_font.getsize(", ")
+
+            album_pos = (padding, red_bar_middle + padding + shadow_offset)
+
+
+            allowed_album_width = red.width - (2 * padding) - year_text_size[0] - spacing_size[0]
+            album_text = cut_text(allowed_album_width, album_font, song_info['album'])
+
+
+
+            red_bar_rectangle = [(0, song_y), (bw.width, album_pos[1] + year_text_size[1] + padding)]
             red_draw.rectangle(red_bar_rectangle, fill=0)
             bw_draw.rectangle(red_bar_rectangle, fill=255)
-
 
             bw_draw.text((song_pos[0] - shadow_offset, song_pos[1] + shadow_offset), song_text, font=song_font, fill=0, anchor='lm')
             bw_draw.text((song_pos[0] + shadow_offset, song_pos[1] - shadow_offset), song_text, font=song_font, fill=255, anchor='lm')
@@ -149,6 +164,10 @@ class MirroredInterface:
             red_draw.text((song_pos[0] - shadow_offset, song_pos[1] + shadow_offset), song_text, font=song_font, fill=(255,255,255,255), anchor='lm')
             red_draw.text((song_pos[0] + shadow_offset, song_pos[1] - shadow_offset), song_text, font=song_font, fill=(255,255,255,255), anchor='lm')
             red_draw.text(song_pos, song_text, font=song_font, fill=0, anchor="lm")
+
+            red_draw.text(album_pos, f"{album_text}, {year}", font=album_font, fill=(255,255,255,255))
+
+            red.show()
 
             bw_image = bw.copy()
             red_image = red.copy()
