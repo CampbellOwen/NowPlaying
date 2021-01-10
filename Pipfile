@@ -7,8 +7,10 @@ name = "pypi"
 requests = "*"
 Wand = "*"
 pillow = "*"
+fonttools = "*"
 
 [dev-packages]
+debugpy = "*"
 
 [requires]
 python_version = "3.9"

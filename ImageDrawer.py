@@ -6,7 +6,8 @@ class BasicDrawer:
         pass
     def draw(self, img, red):
         img.show()
-        red.show()
+        #red.show()
+        return
 
 
 from sys import argv, platform

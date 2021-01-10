@@ -1,5 +1,17 @@
 from PIL import Image, ImageFont, ImageDraw, BdfFontFile
 
+from fontTools.ttLib import TTFont
+
+def has_glyph(font, glyph):
+    for table in font['cmap'].tables:
+        if ord(glyph) in table.cmap.keys():
+            return True
+
+def font_supports_text(font, text):
+    f = TTFont(font)
+    return all([has_glyph(f, glyph) for glyph in text])
+
+
 def cut_text(max_width, font, text):
     (width, height) = font.getsize(text)
 
@@ -41,50 +53,59 @@ def line_wrap(max_width, font, text):
 
 
 class BasicInterface:
-    def __init__(self):
-        self.artist_font = ImageFont.truetype('Consolas.ttf', size=25)
-        self.album_font = ImageFont.truetype('Consolas.ttf', size=25)
-        self.song_font = ImageFont.truetype('ChicagoFLF.ttf', size=67)
-        self.song_font_smaller = ImageFont.truetype('ChicagoFLF.ttf', size=40)
+    def __init__(self, img_width, img_height):
+        self.artist_font = ImageFont.truetype('fonts/Consolas.ttf', size=25)
+        self.album_font = ImageFont.truetype('fonts/Consolas.ttf', size=25)
+        self.song_font = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=67)
+        self.song_font_smaller = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=40)
+
+        self.artist_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=25)
+        self.album_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=25)
+        self.song_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=67)
+        self.song_font_smaller_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=40)
+
+        self.img_width = img_width
+        self.img_height = img_height
+        self.album_height = img_height - 52
 
     def create(self, album_img, song_info):
-        img_target_width = 648
-        img_target_height = 480
-
-        album_height = 428
-
         caption_text = f'{song_info["song"]}\n{song_info["album"]}\n{song_info["artist"]}'
 
         # Create display image
         bw_image = None
         red_image = None
-        with Image.open(album_img) as img, Image.new('RGB', (img_target_width, img_target_height), color="white") as bg, Image.new('RGB', (img_target_width, img_target_height), color="white") as red:
+        with Image.open(album_img) as img, Image.new('RGB', (self.img_width, self.img_height), color="white") as bg, Image.new('RGB', (self.img_width, self.img_height), color="white") as red:
             bg.paste(img)
 
             bw_draw = ImageDraw.Draw(bg)
             red_draw = ImageDraw.Draw(red)
 
             # Draw Album 
-            album_text_size = self.album_font.getsize(song_info['album'])
+
+            album_font = self.album_font
+            if not font_supports_text('fonts/Consolas.ttf', song_info['album']):
+                album_font = self.album_font_jp
+
+            album_text_size = album_font.getsize(song_info['album'])
 
             year = song_info['release_date'][:4]
-            year_text_size = self.album_font.getsize(year)
+            year_text_size = album_font.getsize(year)
             
             album_padding = 15 
-            album_max_width = img_target_width - (album_padding * 2) - (year_text_size[0] + album_padding)
-            album_text = cut_text(album_max_width, self.album_font, song_info['album'])
+            album_max_width = self.img_width - (album_padding * 2) - (year_text_size[0] + album_padding)
+            album_text = cut_text(album_max_width, album_font, song_info['album'])
 
-            album_y = album_height + ((img_target_height - album_height) / 2)
+            album_y = self.album_height + ((self.img_height - self.album_height) / 2)
             album_pos = (15, int(album_y - (album_text_size[1] / 2)))
 
-            bw_draw.text(album_pos, album_text, font=self.album_font, fill=(0,0,0,255))
+            bw_draw.text(album_pos, album_text, font=album_font, fill=(0,0,0,255))
 
             # Draw Year
-            year_pos = (img_target_width - 15 - year_text_size[0], album_pos[1])
-            bw_draw.text(year_pos, year, font=self.album_font, fill=(0,0,0,255))
+            year_pos = (self.img_width - 15 - year_text_size[0], album_pos[1])
+            bw_draw.text(year_pos, year, font=album_font, fill=(0,0,0,255))
 
             # Draw Song Title
-            max_title_width = int(0.9 * img_target_width)
+            max_title_width = int(0.9 * self.img_width)
             song_font = self.song_font
             song_text = cut_text(max_title_width, self.song_font, song_info['song'])
 
@@ -93,13 +114,13 @@ class BasicInterface:
                 song_font = self.song_font_smaller
 
             song_size = song_font.getsize(song_text)
-            song_pos = (img_target_width - album_padding - song_size[0], int((img_target_height / 2) - (song_size[1] / 2)))
+            song_pos = (self.img_width - album_padding - song_size[0], int((self.img_height / 2) - (song_size[1] / 2)))
 
             song_shadow_offset = 3
             song_shadow_pos = (song_pos[0] + song_shadow_offset, song_pos[1] - song_shadow_offset)
 
             song_rect_size = (song_size[0] + (2 * album_padding), int((song_size[1] / 2) + (album_padding / 2)) )
-            song_rect_pos = (img_target_width - song_rect_size[0], int(img_target_height / 2))
+            song_rect_pos = (self.img_width - song_rect_size[0], int(self.img_height / 2))
 
             song_rect_box = [song_rect_pos, (song_rect_pos[0] + song_rect_size[0] + 1, song_rect_pos[1] + song_rect_size[1] + 1)]
 
@@ -114,7 +135,7 @@ class BasicInterface:
             # Draw Artist
 
             artist_pos = (img.width + album_padding, int(song_rect_box[1][1] + album_padding))
-            artist_max_width = img_target_width - img.width - (2 * album_padding)
+            artist_max_width = self.img_width - img.width - (2 * album_padding)
             artist_text = line_wrap(artist_max_width, self.artist_font, song_info['artist'])
             bw_draw.multiline_text(artist_pos, artist_text, font=self.artist_font, fill=(0,0,0,255), align="left", spacing=10)
 

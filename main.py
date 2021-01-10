@@ -20,6 +20,8 @@ from PIL import Image
 
 import secrets
 
+from config import img_height, img_width
+
 def get_file_name(name, image_path):
     name = unicodedata.normalize('NFKD', name)
     name = re.sub('[^\w\s-]', '', name).strip().lower()
@@ -30,13 +32,12 @@ def get_file_name(name, image_path):
     return album_file_name
 
 
-def download_image(url, file_path):
+def download_image(url, file_path, img_height):
     code, response = api.make_request(url)
     if code == 200:
         with Image.open(io.BytesIO(response.content)) as img:
-            height = 428
             album_height = current_song['album_image_height']
-            scale = height / album_height
+            scale = img_height / album_height
             img = img.resize((int(album_height * scale), int(album_height * scale)))
             img.save(file_path)
             log(LogLevel.INFO, LogCategory.ALBUMART, f"{file_path} downloaded")
@@ -44,12 +45,12 @@ def download_image(url, file_path):
     return True
 
 
-def get_dithered_album(current_song):
+def get_dithered_album(current_song, img_height):
     image_name = f'{current_song["artist"]} - {current_song["album"]}'
     image_file_name = get_file_name(image_name, image_path)
 
     if not os.path.exists(image_file_name):
-        download_result = download_image(current_song['album_url'], image_file_name)
+        download_result = download_image(current_song['album_url'], image_file_name, img_height)
 
         if not download_result:
             log(LogLevel.ERROR, LogCategory.ALBUMART, "Error downloading image")
@@ -79,7 +80,7 @@ api = S.Spotify(secrets.client_id, secrets.client_secret, secrets.refresh_token)
 current_song = None
 sleep_time = 5
 
-interface_generator = BasicInterface()
+interface_generator = BasicInterface(img_width, img_height)
 
 with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer: 
     while True:
@@ -96,7 +97,7 @@ with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer:
         if current_song is None:
             exit(1)
 
-        image_name = get_dithered_album(current_song)
+        image_name = get_dithered_album(current_song, interface_generator.album_height)
 
         bw, red = interface_generator.create(image_name, current_song)
 
