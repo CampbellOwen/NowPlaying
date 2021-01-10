@@ -132,7 +132,7 @@ class MirroredInterface:
             song_y = int(red_bar_middle - (song_size[1] / 2))
             song_pos = (song_x, song_y)
 
-            shadow_offset = int(song_size[1] * (5 / 85))
+            shadow_offset = max(3, round(song_size[1] * (5 / 85)))
             album_padding = 10
 
             album_font = get_font(self.album_font, self.album_font_jp, self.album_font_sizes, song_info['album'], 99999)
