@@ -1,4 +1,5 @@
 from PIL import Image, ImageFont, ImageDraw, BdfFontFile
+from Log import log, LogCategory, LogLevel
 
 from fontTools.ttLib import TTFont
 
@@ -65,6 +66,7 @@ def get_font(img_draw, font_name, fallback_name, sizes, text, allowed_width):
         font = ImageFont.truetype(font_name, size=size)
         truncated = cut_text(img_draw, allowed_width, font, text)
         if truncated == text or i == len(sizes) - 1:
+            log(LogLevel.INFO, LogCategory.INTERFACE, f"Using font size {size}")
             return font
 
 
@@ -80,7 +82,7 @@ class MirroredInterface:
 
         self.song_font = 'fonts/ChicagoFLF.ttf'
         self.song_font_jp = 'fonts/KosugiMaru.ttf'
-        self.song_font_sizes = [x for x in range(70, 42, -1)]
+        self.song_font_sizes = [x for x in range(70, 45, -1)]
 
         self.artist_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=25)
         self.album_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=25)
