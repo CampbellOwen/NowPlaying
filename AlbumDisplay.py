@@ -117,11 +117,6 @@ class MirroredInterface:
 
             red_bar_middle = int(3 * (bw.height / 5))
 
-            red_bar_height = int(bw.height / 6)
-            red_bar_rectangle = [(0, red_bar_middle - (red_bar_height // 2)), (bw.width, red_bar_middle + (red_bar_height // 2))]
-            red_draw.rectangle(red_bar_rectangle, fill=0)
-            bw_draw.rectangle(red_bar_rectangle, fill=255)
-
             # Song title
 
             allowed_width = bw.width - (2 * padding)
@@ -131,22 +126,32 @@ class MirroredInterface:
             song_size = song_font.getsize(song_text)
             
             song_x = int((red.width / 2) - (song_size[0] / 2))
-            song_y = int(red_bar_middle - (red_bar_height / 2) - (song_size[1] / (1.5)))
+            song_y = int(red_bar_middle - (song_size[1] / 2))
             song_pos = (song_x, song_y)
 
 
             shadow_offset = 5
 
-            bw_draw.text((song_pos[0] - shadow_offset, song_pos[1] + shadow_offset), song_text, font=song_font, fill=0)
-            bw_draw.text((song_pos[0] + shadow_offset, song_pos[1] - shadow_offset), song_text, font=song_font, fill=255)
-            red_draw.text((song_pos[0] - shadow_offset, song_pos[1] + shadow_offset), song_text, font=song_font, fill=(255,255,255,255))
-            red_draw.text((song_pos[0] + shadow_offset, song_pos[1] - shadow_offset), song_text, font=song_font, fill=(255,255,255,255))
             
-            red_draw.text(song_pos, song_text, font=song_font, fill=0)
-            bw_draw.text(song_pos, song_text, font=song_font, fill=255)
 
-            red.show()
 
+            album_padding = 10
+
+            album_pos = (padding, )
+
+            red_bar_height = int(bw.height / 6)
+            red_bar_rectangle = [(0, red_bar_middle - (red_bar_height // 2)), (bw.width, red_bar_middle + (red_bar_height // 2))]
+            red_draw.rectangle(red_bar_rectangle, fill=0)
+            bw_draw.rectangle(red_bar_rectangle, fill=255)
+
+
+            bw_draw.text(song_pos, song_text, font=song_font, fill=255, anchor="lm")
+            bw_draw.text((song_pos[0] - shadow_offset, song_pos[1] + shadow_offset), song_text, font=song_font, fill=0, anchor='lm')
+            bw_draw.text((song_pos[0] + shadow_offset, song_pos[1] - shadow_offset), song_text, font=song_font, fill=255, anchor='lm')
+
+            red_draw.text(song_pos, song_text, font=song_font, fill=0, anchor="lm")
+            red_draw.text((song_pos[0] - shadow_offset, song_pos[1] + shadow_offset), song_text, font=song_font, fill=(255,255,255,255), anchor='lm')
+            red_draw.text((song_pos[0] + shadow_offset, song_pos[1] - shadow_offset), song_text, font=song_font, fill=(255,255,255,255), anchor='lm')
 
             bw_image = bw.copy()
             red_image = red.copy()
