@@ -131,7 +131,7 @@ with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer:
 
         bw, red = random.choice(interfaces).create(image_file_name, current_song)
 
-        if counter > 20:
+        if counter > 50:
             counter = 0
             # Hopefully this helps with the red bleeding into the black
             drawer.clear()
