@@ -5,8 +5,19 @@ class BasicDrawer:
     def __exit__(self, exc_type, exc_value, traceback):
         pass
     def draw(self, img, red):
+        # red.show()
+
+        img = img.convert('RGB')
+        red = red.convert('RGB')
+        
+        red_pixels = red.load()
+        black_pixels = img.load()
+        for x in range(red.width):
+            for y in range(red.height):
+                if red_pixels[x,y][0] <= 0:
+                    black_pixels[x,y] = (255,0,0)
         img.show()
-        red.show()
+
         return
     def clear(self):
         return
