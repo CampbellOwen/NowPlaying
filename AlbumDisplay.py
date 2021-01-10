@@ -57,6 +57,16 @@ def resize_image(image, target_height):
     #log(LogLevel.INFO, LogCategory.ALBUMART, "Resizing image")
     return image.resize((int(image.width * scale), int(image.height * scale)))
 
+def get_font(font_name, fallback_name, sizes, text, allowed_width):
+    if not font_supports_text(font_name, text):
+        font_name = fallback_name
+    for i, size in enumerate(sizes):
+        font = ImageFont.truetype(font_name, size=size)
+        truncated = cut_text(allowed_width, font, text)
+        if truncated == text or i == len(sizes) - 1:
+            return font
+
+
 
 class MirroredInterface:
     def __init__(self, dither_function, img_width, img_height):
@@ -64,13 +74,19 @@ class MirroredInterface:
 
         self.artist_font = ImageFont.truetype('fonts/Consolas.ttf', size=25)
         self.album_font = ImageFont.truetype('fonts/Consolas.ttf', size=25)
-        self.song_font = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=70)
-        self.song_font_smaller = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=40)
+        # self.song_font = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=70)
+        # self.song_font_smaller = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=47)
+        # self.song_font_smallest = ImageFont.truetype('fonts/ChicagoFLF.ttf', size=40)
+
+        self.song_font = 'fonts/ChicagoFLF.ttf'
+        self.song_font_jp = 'fonts/KosugiMaru.ttf'
+        self.song_font_sizes = [70 - x for x in range(0, 31, 2)]
 
         self.artist_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=25)
         self.album_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=25)
-        self.song_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=60)
-        self.song_font_smaller_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=40)
+        # self.song_font_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=70)
+        # self.song_font_smaller_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=50)
+        # self.song_font_smallest_jp = ImageFont.truetype('fonts/KosugiMaru.ttf', size=50)
 
         self.img_width = img_width
         self.img_height = img_height
@@ -109,22 +125,13 @@ class MirroredInterface:
             # Song title
 
             allowed_width = bw.width - (2 * padding)
-            song_font = self.song_font
-            useJpFont = not font_supports_text('fonts/ChicagoFLF.ttf', song_info['song'])
-            if useJpFont:
-                song_font = self.song_font_jp
-
+            song_font = get_font(self.song_font, self.song_font_jp, self.song_font_sizes, song_info['song'], allowed_width)
             song_text = cut_text(allowed_width, song_font, song_info['song'])
-
-            if not song_text == song_info['song']:
-                print(song_text)
-                song_text = cut_text(allowed_width, self.song_font_smaller, song_info['song'])
-                song_font = self.song_font_smaller_jp if useJpFont else self.song_font_smaller 
 
             song_size = song_font.getsize(song_text)
             
             song_x = int((red.width / 2) - (song_size[0] / 2))
-            song_y = int(red_bar_middle - (red_bar_height / 2) - (song_size[1] / 2))
+            song_y = int(red_bar_middle - (red_bar_height / 2) - (song_size[1] / (1.5)))
             song_pos = (song_x, song_y)
 
 
