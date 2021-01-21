@@ -61,19 +61,24 @@ class Spotify:
         result = result.json()
 
         data = {}
-        data['artist'] = result['item']['artists'][0]['name']
-        data['album'] = result['item']['album']['name']
-        data['release_date'] = result['item']['album']['release_date']
-        data['song'] = result['item']['name']
-        data['song_popularity'] = result['item']['popularity']
-        data['total_tracks'] = result['item']['album']['total_tracks']
-        data['track_number'] = result['item']['track_number']
+        try:
+            data['artist'] = result['item']['artists'][0]['name']
+            data['album'] = result['item']['album']['name']
+            data['release_date'] = result['item']['album']['release_date']
+            data['song'] = result['item']['name']
+            data['song_popularity'] = result['item']['popularity']
+            data['total_tracks'] = result['item']['album']['total_tracks']
+            data['track_number'] = result['item']['track_number']
 
-        album_urls = [(image['height'], image['url']) for image in result['item']['album']['images']]
-        biggest_image = sorted(album_urls, key=lambda img: img[0], reverse=True)
+            album_urls = [(image['height'], image['url']) for image in result['item']['album']['images']]
+            biggest_image = sorted(album_urls, key=lambda img: img[0], reverse=True)
 
-        data['album_url'] = biggest_image[0][1]
-        data['album_image_height'] = int(biggest_image[0][0])
+            data['album_url'] = biggest_image[0][1]
+            data['album_image_height'] = int(biggest_image[0][0])
+        except:
+            log(LogLevel.ERROR, LogCategory.SPOTIFY, "Error parsing current song")
+            pp = pprint.PrettyPrinter(indent=4)
+            pp.pprint(result)
 
         return data
 
