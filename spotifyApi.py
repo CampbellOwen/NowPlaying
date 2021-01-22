@@ -53,7 +53,7 @@ class Spotify:
         log(LogLevel.INFO, LogCategory.SPOTIFY, f'Auth Token: {self.access_token}')
         log(LogLevel.INFO, LogCategory.SPOTIFY, f'Expiry Time: {self.expiration_time}')
 
-    def current_song(self):
+    def current_song(self, second_try=False):
         code, result = self.make_request("https://api.spotify.com/v1/me/player/currently-playing")
         if not code == 200:
             return None
@@ -79,6 +79,13 @@ class Spotify:
             log(LogLevel.ERROR, LogCategory.SPOTIFY, "Error parsing current song")
             pp = pprint.PrettyPrinter(indent=4)
             pp.pprint(result)
+            if not second_try:
+                log(LogLevel.INFO, LogCategory.SPOTIFY, "Sleeping for 1 second and then trying again")
+                time.sleep(1)
+                return self.current_song(True)
+            else:
+                log(LogLevel.INFO, LogCategory.SPOTIFY, "Already tried twice, return None")
+                return None
 
         return data
 
