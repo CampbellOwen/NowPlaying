@@ -15,23 +15,27 @@ class Spotify:
 
         headers = {'Authorization': f'Bearer {self.access_token}'}
         
-        r = requests.get(url, headers=headers)
-        if not (r.status_code == 200 or r.status_code == 204):
-            log(LogLevel.ERROR, LogCategory.SPOTIFY, f"Request returned status code {r.status_code}")
-            log(LogLevel.ERROR, LogCategory.SPOTIFY, f"Request returned {r.text}")
-            if r.status_code == 429:
-                timeout = int(r.headers['retry-after'])
-                log(LogLevel.ERROR, LogCategory.SPOTIFY, f"Rate limited, waiting {timeout} seconds")
-                time.sleep(timeout)
-
-            self.refresh_auth()
+        try:
             r = requests.get(url, headers=headers)
             if not (r.status_code == 200 or r.status_code == 204):
                 log(LogLevel.ERROR, LogCategory.SPOTIFY, f"Request returned status code {r.status_code}")
                 log(LogLevel.ERROR, LogCategory.SPOTIFY, f"Request returned {r.text}")
-                return r.status_code, r
+                if r.status_code == 429:
+                    timeout = int(r.headers['retry-after'])
+                    log(LogLevel.ERROR, LogCategory.SPOTIFY, f"Rate limited, waiting {timeout} seconds")
+                    time.sleep(timeout)
 
-        return r.status_code, r
+                self.refresh_auth()
+                r = requests.get(url, headers=headers)
+                if not (r.status_code == 200 or r.status_code == 204):
+                    log(LogLevel.ERROR, LogCategory.SPOTIFY, f"Request returned status code {r.status_code}")
+                    log(LogLevel.ERROR, LogCategory.SPOTIFY, f"Request returned {r.text}")
+                    return r.status_code, r
+
+            return r.status_code, r
+        except ConnectionError as e:
+            log(LogLevel.ERROR, LogCategory.SPOTIFY, e)
+            return 503, None
     
     def refresh_auth(self):
         log(LogLevel.INFO, LogCategory.SPOTIFY, "Refreshing auth token")
