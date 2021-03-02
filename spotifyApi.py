@@ -33,7 +33,7 @@ class Spotify:
                     return r.status_code, r
 
             return r.status_code, r
-        except ConnectionError as e:
+        except Exception as e:
             log(LogLevel.ERROR, LogCategory.SPOTIFY, e)
             return 503, None
     
