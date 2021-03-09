@@ -43,9 +43,11 @@ class EinkDrawer:
         self.epd.Dev_exit()
 
     def wakeup(self):
+        log(LogLevel.INFO, LogCategory.EINK, "Waking up display")
         self.epd.init()
 
     def sleep(self):
+        log(LogLevel.INFO, LogCategory.EINK, "Putting display to sleep")
         self.epd.sleep()
 
     def draw(self, bw, red):
