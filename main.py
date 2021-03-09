@@ -109,6 +109,8 @@ with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer:
         log(LogLevel.INFO, LogCategory.SPOTIFY, "Refreshing current song")
         new_song = api.current_song()
         if new_song is None or current_song == new_song:
+            if new_song is None and not current_song is None:
+                drawer.clear()
             sleep_time = sleep_inactive if new_song is None else sleep_active
             current_song = new_song
             time.sleep(sleep_time)
