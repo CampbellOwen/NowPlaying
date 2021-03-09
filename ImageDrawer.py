@@ -42,6 +42,12 @@ class EinkDrawer:
         self.epd.sleep()
         self.epd.Dev_exit()
 
+    def wakeup(self):
+        self.epd.init()
+
+    def sleep(self):
+        self.epd.sleep()
+
     def draw(self, bw, red):
         one_bit_bw = bw.convert("1", dither=Image.NONE)
         one_bit_red = red.convert("1", dither=Image.NONE)

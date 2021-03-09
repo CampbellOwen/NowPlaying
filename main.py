@@ -110,7 +110,9 @@ with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer:
         new_song = api.current_song()
         if new_song is None or current_song == new_song:
             if new_song is None and not current_song is None:
+                drawer.wakeup()
                 drawer.clear()
+                drawer.sleep()
             sleep_time = sleep_inactive if new_song is None else sleep_active
             current_song = new_song
             time.sleep(sleep_time)
@@ -133,6 +135,7 @@ with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer:
 
         bw, red = random.choice(interfaces).create(image_file_name, current_song)
 
+        drawer.wakeup()
         if counter > 50:
             counter = 0
             # Hopefully this helps with the red bleeding into the black
@@ -140,4 +143,5 @@ with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer:
         drawer.draw(bw, red)
         counter += 1
         
+        drawer.sleep()
         time.sleep(sleep_active)
