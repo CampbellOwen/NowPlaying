@@ -3,6 +3,8 @@ import pprint
 import requests
 import time
 
+from datetime import datetime
+
 from Log import log, LogLevel, LogCategory
 
 class Spotify:
@@ -55,7 +57,7 @@ class Spotify:
         self.access_token = result['access_token']
         self.expiration_time = int(result['expires_in']) + int(time.time())
         # log(LogLevel.INFO, LogCategory.SPOTIFY, f'Auth Token: {self.access_token}')
-        log(LogLevel.INFO, LogCategory.SPOTIFY, f'Expiry Time: {self.expiration_time}')
+        log(LogLevel.INFO, LogCategory.SPOTIFY, f'Expiry Time: {datetime.fromtimestamp(self.expiration_time).strftime('%Y-%m-%dT%H:%M:%SZ')}')
 
     def current_song(self, second_try=False):
         code, result = self.make_request("https://api.spotify.com/v1/me/player/currently-playing")
