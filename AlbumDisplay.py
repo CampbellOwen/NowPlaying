@@ -181,6 +181,39 @@ class MirroredInterface:
 
         return bw_image, red_image
 
+class RawAlbumInterface:
+    def __init__(self, dither_function, img_width, img_height):
+        self.dither_function = dither_function
+
+        self.img_width = img_width
+        self.img_height = img_height
+        self.album_height = img_height
+
+
+    def create(self, album_img, song_info):
+        bw_image = None
+        red_image = None
+
+        padding = 15
+
+        with Image.open(album_img) as album, Image.new('RGB', (self.img_width, self.img_height), color="white") as bw, Image.new('RGB', (self.img_width, self.img_height), color="white") as red:
+            album = resize_image(album, self.album_height)
+
+            album_x = int((bw.width / 2 ) - (album.width / 2))
+            bw.paste(album, (album_x, 0))
+
+            album_flipped = album.transpose(method=Image.FLIP_LEFT_RIGHT)
+            bw.paste(album_flipped, (album_x - album.width, 0))
+            
+            album_x = album_x + album.width
+            bw.paste(album_flipped, (album_x, 0))
+            bw = self.dither_function(bw)
+
+            bw_image = bw.copy()
+            red_image = red.copy()
+
+        return bw_image, red_image
+
 
 class BasicInterface:
     def __init__(self, dither_function, img_width, img_height):

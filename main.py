@@ -13,7 +13,7 @@ import io
 from sys import platform
 from sys import argv
 
-from AlbumDisplay import BasicInterface, MirroredInterface
+from AlbumDisplay import BasicInterface, MirroredInterface, RawAlbumInterface
 from ImageDrawer import BasicDrawer, EinkDrawer
 from Log import LogLevel, LogCategory, log
 
@@ -101,7 +101,7 @@ sleep_inactive = 15
 
 dither = dither_function(dither_path, image_path)
 
-interfaces = [BasicInterface(dither, img_width, img_height), MirroredInterface(dither, img_width, img_height)]
+interfaces = [BasicInterface(dither, img_width, img_height), MirroredInterface(dither, img_width, img_height), RawAlbumInterface(dither, img_width, img_height)]
 
 with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer: 
     counter = 0
