@@ -8,3 +8,5 @@
 5. Run `main.py <path to dither program> <image cache folder>`
 
 One day I'll get around to making all that way easier I promise :D
+
+![Photo of e-ink display](photos/best/20201213_111308657_iOS.jpg)
