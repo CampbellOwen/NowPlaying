@@ -12,3 +12,6 @@ An e-ink display that always shows the song you're currently listening to on Spo
 One day I'll get around to making all that way easier I promise :D
 
 ![Photo of e-ink display](photos/best/20201213_111308657_iOS.jpg)
+
+![Photo of e-ink display](photos/best/badbadnotgood.png)
+![Photo of e-ink display](photos/best/beatles.png)
