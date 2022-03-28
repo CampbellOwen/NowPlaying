@@ -1,5 +1,7 @@
 # NowPlaying
 
+An e-ink display that always shows the song you're currently listening to on Spotify.
+
 ## Installation
 1. Build the dithering project with cmake (or just use the checked in `dither.exe` if you're on windows)
 2. Get a `refresh_token`, `client_id`, and `client_secret` from the Spotify API and add to `secrets.py`
