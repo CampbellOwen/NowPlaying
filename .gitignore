@@ -1,3 +1,6 @@
 secrets.py
 images
 __pycache__
+build
+photos/*
+deployment
