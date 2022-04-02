@@ -4,3 +4,6 @@ __pycache__
 build
 photos/*
 deployment
+target
+image/*
+out.png
