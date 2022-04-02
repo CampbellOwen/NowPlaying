@@ -172,6 +172,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "image",
+ "lab",
 ]
 
 [[package]]
@@ -345,6 +346,12 @@ checksum = "a38fc24e30fd564ce974c02bf1d337caddff65be6cc4735a1f7eab22a7440f04"
 dependencies = [
  "wasm-bindgen",
 ]
+
+[[package]]
+name = "lab"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f5d782ef37f8f315972842b0eac1434688ff1292eef1b92b6dd138c9f8c69b23"
 
 [[package]]
 name = "lazy_static"
