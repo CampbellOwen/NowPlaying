@@ -38,8 +38,8 @@ fn main() {
     }
     let original = img.unwrap();
     let img = resized_dimension
-        .and_then(|size| Some(get_resized_image(&original, size).into()))
-        .unwrap_or(original.clone());
+        .map(|size| get_resized_image(&original, size).into())
+        .unwrap_or_else(|| original.clone());
 
     let linear: DynamicImage = to_linear(&img).into();
 
@@ -97,7 +97,7 @@ fn main() {
         out_path.iter().for_each(|out_path| {
             canvas
                 .save(out_path)
-                .expect(&format!("Failed writing output image to {}", out_path))
+                .unwrap_or_else(|_| panic!(" Failed writing output image to {}", out_path));
         });
     }
 }

@@ -134,7 +134,7 @@ pub fn cluster(img: &DynamicImage, num_clusters: u32, max_iterations: Option<u32
                 .min_by(|(_, s1), (_, s2)| s1.partial_cmp(s2).expect("should compare"))
                 .expect("There should always be a best cluster");
 
-            clusters[best_cluster_idx].members.push(pixel.clone());
+            clusters[best_cluster_idx].members.push(*pixel);
         });
 
         clusters.iter_mut().for_each(|cluster| {
