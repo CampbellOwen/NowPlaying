@@ -5,19 +5,24 @@ use image_utils::*;
 use k_means::cluster;
 
 #[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None)]
+#[clap(author, version, about)]
 struct Args {
+    /// Path to the image to analyze
     input_image: String,
 
+    /// If specified, will resize the image such that the biggest side will be length <IMAGE_SIZE>
     #[clap(short = 's', long)]
     image_size: Option<u32>,
 
+    /// If specified, will save an image to the path provided with the image clusters annotated on the side
     #[clap(short = 'o', long)]
     annotated_image_path: Option<String>,
 
+    /// If specified, will stop the k-means clustering after <MAX_ITERATIONS> iterations
     #[clap(short, long)]
     max_iterations: Option<u32>,
 
+    /// Cluster the image into <NUM_CLUSTERS> clusters
     #[clap(short, long)]
     num_clusters: u32,
 }
@@ -66,7 +71,7 @@ fn main() {
     clusters.iter().enumerate().for_each(|(i, cluster)| {
         let [r, g, b] = colours[i].0;
         println!(
-            "{{ colour: #{:X}{:X}{:X} }}, average_error: {}, num_pixels: {} }}",
+            "{{ colour: #{:X}{:X}{:X}, average_error: {}, num_pixels: {} }}",
             r,
             g,
             b,
