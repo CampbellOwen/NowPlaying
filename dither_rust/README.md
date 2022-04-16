@@ -41,24 +41,6 @@ OPTIONS:
 
 ### Sample Output
 
-#### Command-line Arguments
-
-`image_cluster -n 5 ..\images\herz-analog-어서오세요-여름밤.png`
-
-#### Cluster Information
-
-```json
-{ colour: #F0DFB1, average_error: 107.93902, num_pixels: 30026 }
-{ colour: #1C2121, average_error: 10.067805, num_pixels: 303786 }
-{ colour: #795649, average_error: 120.86689, num_pixels: 44798 }
-{ colour: #DBD7CD, average_error: 229.04242, num_pixels: 9270 }
-{ colour: #A59779, average_error: 182.07202, num_pixels: 21720 }
-```
-
-#### Annotated Image
-
-![herz-analog-어서오세요-여름밤 album art](img/herz.png)
-
 <table>
 <tr>
 <td>Command-line Arguments</td>
