@@ -2,6 +2,16 @@
 
 Am slowly rewriting the image manipulation parts of the project in Rust.
 
+I want to be able to identify images that have a strong red component in them so I can incorporate it into the dithering on the 3-colour E-ink display I'm using. I don't want to just add red to any image, as if there's not a strong red component the red just looks weird with such low resolution.
+
+The plan:
+
+1. Cluster the album art into its 5 main colours
+2. If one of the clusters is close to the red of the E-ink display, mask the red sections out of the image.
+3. Dither only the red parts of the image with a black-white-red colour palette
+4. Dither the non-red parts of the image with a black-white colour palette.
+5. Merge the two results, overwriting any extra red with the black-white dithered image.
+
 ## Image Cluster
 
 A command line utility to cluster an image into `n` different colour clusters. Uses the `k-means` algorithm with the `k-means++` intial clustering.
