@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use image::{DynamicImage, GenericImageView, Pixel};
 use lab::Lab;
 
@@ -5,13 +7,14 @@ use rand::distributions::WeightedIndex;
 use rand::prelude::*;
 use rand::Rng;
 
+#[derive(Debug)]
 pub struct Cluster {
     pub average_pixel: Lab,
     pub members: Vec<Lab>,
     pub score: f32,
 }
 
-impl std::fmt::Debug for Cluster {
+impl Display for Cluster {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Cluster")
             .field("average_pixel", &self.average_pixel)
@@ -68,7 +71,7 @@ fn unique_colours(colours: &[Lab]) -> Vec<Lab> {
     unique
 }
 
-pub fn cluster(img: &DynamicImage, num_clusters: u32) -> Vec<Cluster> {
+pub fn cluster(img: &DynamicImage, num_clusters: u32, max_iterations: Option<u32>) -> Vec<Cluster> {
     let lab_pixels: Vec<Lab> = img
         .pixels()
         .map(|(_, _, pixel)| {
@@ -112,8 +115,11 @@ pub fn cluster(img: &DynamicImage, num_clusters: u32) -> Vec<Cluster> {
         });
     }
 
+    let max_iterations = max_iterations.unwrap_or(u32::MAX);
+
+    let mut it = 0;
     let mut converged = false;
-    while !converged {
+    while !converged && it < max_iterations {
         clusters
             .iter_mut()
             .for_each(|cluster| cluster.members.clear());
@@ -143,6 +149,8 @@ pub fn cluster(img: &DynamicImage, num_clusters: u32) -> Vec<Cluster> {
             .map(|cluster| cluster.score)
             .zip(prev_scores)
             .all(|(s1, s2)| f32_equal(s1, s2));
+
+        it += 1;
     }
 
     clusters
