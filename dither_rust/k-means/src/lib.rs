@@ -1,8 +1,4 @@
-use core::num;
-use std::collections::HashSet;
-use std::hash::Hash;
-
-use image::{DynamicImage, GenericImage, GenericImageView, Pixel, Rgb};
+use image::{DynamicImage, GenericImageView, Pixel};
 use lab::Lab;
 
 use rand::distributions::WeightedIndex;
@@ -45,7 +41,6 @@ pub fn average_lab(pixels: &[Lab]) -> Lab {
 }
 
 fn lab_equal(c1: &Lab, c2: &Lab) -> bool {
-    let epsilon = 1e-5;
     f32_equal(c1.l, c2.l) && f32_equal(c1.a, c2.a) && f32_equal(c1.b, c2.b)
 }
 
@@ -73,9 +68,7 @@ fn unique_colours(colours: &[Lab]) -> Vec<Lab> {
     unique
 }
 
-//fn improve_clusters(img: &[Lab], clusters: &[Cluster])
-
-pub fn cluster(img: &DynamicImage, num_clusters: u32, num_iterations: u32) -> Vec<Cluster> {
+pub fn cluster(img: &DynamicImage, num_clusters: u32) -> Vec<Cluster> {
     let lab_pixels: Vec<Lab> = img
         .pixels()
         .map(|(_, _, pixel)| {
@@ -119,30 +112,8 @@ pub fn cluster(img: &DynamicImage, num_clusters: u32, num_iterations: u32) -> Ve
         });
     }
 
-    //let mut clusters: Vec<Cluster> = (0..num_clusters)
-    //    .map(|_| {
-    //        let idx = rng.gen_range(0..lab_pixels.len());
-    //        Cluster {
-    //            average_pixel: lab_pixels[idx],
-    //            members: Vec::new(),
-    //            score: 0.0,
-    //        }
-    //    })
-    //    .collect();
-
-    //let mut clusters: Vec<Cluster> = lab_pixels
-    //    .iter()
-    //    .take(num_clusters as usize)
-    //    .map(|(pixel)| Cluster {
-    //        average_pixel: pixel.clone(),
-    //        members: vec![pixel.clone()],
-    //    })
-    //    .collect();
-
     let mut converged = false;
-    let mut iter = 0;
     while !converged {
-        println!("Iteration {}", iter);
         clusters
             .iter_mut()
             .for_each(|cluster| cluster.members.clear());
@@ -158,7 +129,6 @@ pub fn cluster(img: &DynamicImage, num_clusters: u32, num_iterations: u32) -> Ve
                 .expect("There should always be a best cluster");
 
             clusters[best_cluster_idx].members.push(pixel.clone());
-            //clusters[cluster_idx].average_pixel = average_pixel(&clusters[cluster_idx].members);
         });
 
         clusters.iter_mut().for_each(|cluster| {
@@ -168,18 +138,11 @@ pub fn cluster(img: &DynamicImage, num_clusters: u32, num_iterations: u32) -> Ve
             }) / cluster.members.len() as f32;
         });
 
-        //clusters
-        //    .iter()
-        //    .for_each(|cluster| println!("{:?}", cluster));
-        //println!("\n");
-
         converged = clusters
             .iter()
             .map(|cluster| cluster.score)
             .zip(prev_scores)
             .all(|(s1, s2)| f32_equal(s1, s2));
-
-        iter += 1;
     }
 
     clusters

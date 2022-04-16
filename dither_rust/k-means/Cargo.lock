@@ -176,6 +176,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "dither"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "image",
+ "lab",
+ "rand",
+]
+
+[[package]]
 name = "either"
 version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -305,23 +315,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "image_cluster"
-version = "0.1.0"
-dependencies = [
- "clap",
- "image",
- "image_utils",
- "k-means",
-]
-
-[[package]]
-name = "image_utils"
-version = "0.1.0"
-dependencies = [
- "image",
-]
-
-[[package]]
 name = "indexmap"
 version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -356,16 +349,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "671a26f820db17c2a2750743f1dd03bafd15b98c9f30c7c2628c024c05d73397"
 dependencies = [
  "wasm-bindgen",
-]
-
-[[package]]
-name = "k-means"
-version = "0.1.0"
-dependencies = [
- "clap",
- "image",
- "lab",
- "rand",
 ]
 
 [[package]]
