@@ -311,7 +311,9 @@ dependencies = [
  "clap",
  "image",
  "image_utils",
+ "itertools",
  "k-means",
+ "oklab",
 ]
 
 [[package]]
@@ -341,6 +343,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.10.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9a9d19fa1e79b6215ff29b9d6880b706147f16e9b1dbb1e4e5947b5b02bc5e3"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "jpeg-decoder"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -364,15 +375,9 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "image",
- "lab",
+ "oklab",
  "rand",
 ]
-
-[[package]]
-name = "lab"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f5d782ef37f8f315972842b0eac1434688ff1292eef1b92b6dd138c9f8c69b23"
 
 [[package]]
 name = "lazy_static"
@@ -487,6 +492,15 @@ checksum = "19e64526ebdee182341572e50e9ad03965aa510cd94427a4549448f285e957a1"
 dependencies = [
  "hermit-abi",
  "libc",
+]
+
+[[package]]
+name = "oklab"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "467e40ada50d13bab19019e3707862b5076ca15841f31ee1474c40397c1b9f11"
+dependencies = [
+ "rgb",
 ]
 
 [[package]]
@@ -627,6 +641,15 @@ dependencies = [
  "crossbeam-deque",
  "crossbeam-utils",
  "num_cpus",
+]
+
+[[package]]
+name = "rgb"
+version = "0.8.32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e74fdc210d8f24a7dbfedc13b04ba5764f5232754ccebfdf5fff1bad791ccbc6"
+dependencies = [
+ "bytemuck",
 ]
 
 [[package]]

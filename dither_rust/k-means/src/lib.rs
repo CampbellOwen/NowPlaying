@@ -1,7 +1,8 @@
+use std::cmp::Ordering;
 use std::fmt::Display;
 
 use image::{DynamicImage, GenericImageView, Pixel};
-use lab::Lab;
+use oklab::{linear_srgb_to_oklab, Oklab, RGB as OkRGB};
 
 use rand::distributions::WeightedIndex;
 use rand::prelude::*;
@@ -9,8 +10,8 @@ use rand::Rng;
 
 #[derive(Debug)]
 pub struct Cluster {
-    pub average_pixel: Lab,
-    pub members: Vec<Lab>,
+    pub average_pixel: Oklab,
+    pub members: Vec<Oklab>,
     pub score: f32,
 }
 
@@ -24,26 +25,77 @@ impl Display for Cluster {
     }
 }
 
-pub fn average_lab(pixels: &[Lab]) -> Lab {
-    let sum = pixels
+pub fn average_lab(pixels: &[Oklab]) -> Oklab {
+    let (l, a, b) = pixels
         .iter()
         .copied()
-        .reduce(|accum, pixel| Lab {
-            l: accum.l + pixel.l,
-            a: accum.a + pixel.a,
-            b: accum.b + pixel.b,
-        })
-        .expect("Should always have a sum");
+        .fold((0.0, 0.0, 0.0), |(l, a, b), pixel| {
+            (l + pixel.l as f64, a + pixel.a as f64, b + pixel.b as f64)
+        });
 
-    let n = pixels.len() as f32;
-    Lab {
-        l: sum.l / n,
-        a: sum.a / n,
-        b: sum.b / n,
+    let n = pixels.len() as f64;
+    let avg = Oklab {
+        l: (l / n) as f32,
+        a: (a / n) as f32,
+        b: (b / n) as f32,
+    };
+
+    if avg.l.is_nan() || avg.a.is_nan() || avg.b.is_nan() {
+        return Oklab {
+            l: 0.0,
+            a: 0.0,
+            b: 0.0,
+        };
     }
+
+    return avg;
 }
 
-fn lab_equal(c1: &Lab, c2: &Lab) -> bool {
+pub fn oklab_distance(col1: &Oklab, col2: &Oklab) -> f32 {
+    if lab_equal(col1, col2) {
+        return 0.0;
+    }
+
+    let l_1 = col1.l as f64;
+    let l_2 = col2.l as f64;
+    let a_1 = col1.a as f64;
+    let a_2 = col2.a as f64;
+    let b_1 = col1.b as f64;
+    let b_2 = col2.b as f64;
+
+    let delta_l = l_1 - l_2;
+    if delta_l.is_nan() {
+        return 0.0;
+    }
+
+    let c1 = (a_1.powi(2) + b_1.powi(2)).sqrt();
+    if c1.is_nan() {
+        return 0.0;
+    }
+    let c2 = (a_2.powi(2) + b_2.powi(2)).sqrt();
+    if c2.is_nan() {
+        return 0.0;
+    }
+    let delta_c = c1 - c2;
+    let delta_c = if delta_c.abs() < 1e-5 { 0.0 } else { delta_c };
+
+    let delta_a = a_1 - a_2;
+    let delta_a = if delta_a.abs() < 1e-5 { 0.0 } else { delta_a };
+
+    let delta_b = b_1 - b_2;
+    let delta_b = if delta_b.abs() < 1e-5 { 0.0 } else { delta_b };
+
+    let delta_h = delta_a.powi(2) + delta_b.powi(2) - delta_c.powi(2);
+    let delta_h = if delta_h.abs() < 1e-5 { 0.0 } else { delta_h };
+
+    (delta_l.powi(2) + delta_c.powi(2) + delta_h).sqrt() as f32
+}
+
+pub fn oklab_distance2(col1: &Oklab, col2: &Oklab) -> f32 {
+    ((col1.l - col2.l).powi(2) + (col1.a - col2.a).powi(2) + (col1.b - col2.b).powi(2)).sqrt()
+}
+
+fn lab_equal(c1: &Oklab, c2: &Oklab) -> bool {
     f32_equal(c1.l, c2.l) && f32_equal(c1.a, c2.a) && f32_equal(c1.b, c2.b)
 }
 
@@ -52,7 +104,7 @@ fn f32_equal(x: f32, y: f32) -> bool {
     f32::abs(x - y) < epsilon
 }
 
-fn unique_colours(colours: &[Lab]) -> Vec<Lab> {
+fn unique_colours(colours: &[Oklab]) -> Vec<Oklab> {
     let mut unique = Vec::new();
 
     colours.iter().for_each(|c| {
@@ -71,13 +123,27 @@ fn unique_colours(colours: &[Lab]) -> Vec<Lab> {
     unique
 }
 
+fn compare_f32(x1: f32, x2: f32) -> Ordering {
+    if f32_equal(x1, x2) {
+        Ordering::Equal
+    } else if (x1 - x2) < 0.0 {
+        Ordering::Less
+    } else {
+        Ordering::Greater
+    }
+}
+
 pub fn cluster(img: &DynamicImage, num_clusters: u32, max_iterations: Option<u32>) -> Vec<Cluster> {
-    let lab_pixels: Vec<Lab> = img
+    let lab_pixels: Vec<Oklab> = img
         .pixels()
         .map(|(_, _, pixel)| {
             let rgb = pixel.to_rgb();
             let channels = rgb.channels();
-            Lab::from_rgb(&[channels[0], channels[1], channels[2]])
+            linear_srgb_to_oklab(OkRGB::from([
+                channels[0] as f32 / 255.0,
+                channels[1] as f32 / 255.0,
+                channels[2] as f32 / 255.0,
+            ]))
         })
         .collect();
 
@@ -101,12 +167,14 @@ pub fn cluster(img: &DynamicImage, num_clusters: u32, max_iterations: Option<u32
             .map(|pixel| {
                 clusters
                     .iter()
-                    .map(|cluster| pixel.squared_distance(&cluster.average_pixel))
+                    .map(|cluster| oklab_distance(&pixel, &cluster.average_pixel))
+                    .map(|score| score * 100.0)
                     .reduce(f32::min)
                     .expect("Should be a min")
             })
             .collect();
 
+        //println!("{:?}", weights);
         let dist = WeightedIndex::new(&weights).expect("Should be able to create a distribution");
         clusters.push(Cluster {
             average_pixel: unique_pixels[dist.sample(&mut rng)],
@@ -130,8 +198,8 @@ pub fn cluster(img: &DynamicImage, num_clusters: u32, max_iterations: Option<u32
             let (best_cluster_idx, _) = clusters
                 .iter()
                 .enumerate()
-                .map(|(idx, cluster)| (idx, pixel.squared_distance(&cluster.average_pixel)))
-                .min_by(|(_, s1), (_, s2)| s1.partial_cmp(s2).expect("should compare"))
+                .map(|(idx, cluster)| (idx, oklab_distance(pixel, &cluster.average_pixel)))
+                .min_by(|(_, s1), (_, s2)| compare_f32(*s1, *s2))
                 .expect("There should always be a best cluster");
 
             clusters[best_cluster_idx].members.push(*pixel);
@@ -140,7 +208,7 @@ pub fn cluster(img: &DynamicImage, num_clusters: u32, max_iterations: Option<u32
         clusters.iter_mut().for_each(|cluster| {
             cluster.average_pixel = average_lab(&cluster.members);
             cluster.score = cluster.members.iter().fold(0.0, |score, pixel| {
-                score + pixel.squared_distance(&cluster.average_pixel)
+                score + oklab_distance(pixel, &cluster.average_pixel)
             }) / cluster.members.len() as f32;
         });
 

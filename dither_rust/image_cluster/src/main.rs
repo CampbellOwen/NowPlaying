@@ -1,5 +1,9 @@
+use std::num::ParseIntError;
+
 use clap::Parser;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageBuffer, Rgb};
+use itertools::Itertools;
+use oklab::oklab_to_srgb;
 
 use image_utils::*;
 use k_means::cluster;
@@ -25,6 +29,33 @@ struct Args {
     /// Cluster the image into <NUM_CLUSTERS> clusters
     #[clap(short, long)]
     num_clusters: u32,
+
+    /// Mask the image if any of the clusters match the colour
+    #[clap(short = 'c', long)]
+    mask_colour: Option<String>,
+}
+
+fn parse_colour(str: &str) -> Option<[u8; 3]> {
+    let channels: Vec<Result<u8, ParseIntError>> = str
+        .chars()
+        .tuples()
+        .map(|(first, second)| {
+            let mut s = String::new();
+            s.push(first);
+            s.push(second);
+            u8::from_str_radix(&s, 16)
+        })
+        .collect();
+    if channels.len() < 3 || channels.iter().any(|r| r.is_err()) {
+        return None;
+    }
+
+    let mut channels_it = channels.iter().cloned().map(|r| r.unwrap());
+    Some([
+        channels_it.next().unwrap(),
+        channels_it.next().unwrap(),
+        channels_it.next().unwrap(),
+    ])
 }
 
 fn main() {
@@ -34,6 +65,7 @@ fn main() {
         annotated_image_path: out_path,
         num_clusters,
         max_iterations,
+        mask_colour,
     } = Args::parse();
 
     let img = image::open(&input_image);
@@ -41,6 +73,20 @@ fn main() {
         println!("Error loading image \"{}\": {}", &input_image, err);
         return;
     }
+
+    let mask_colour = mask_colour.map(|s| {
+        parse_colour(&s).unwrap_or_else(|| {
+            panic!(
+                "Incorrect colour format: {}\nPlease specify colour as RRGGBB",
+                s
+            )
+        })
+    });
+
+    if mask_colour.is_some() && out_path.is_none() {
+        panic!("If mask_colour is set, annotated_image_path should also be set");
+    }
+
     let original = img.unwrap();
     let img = resized_dimension
         .map(|size| get_resized_image(&original, size).into())
@@ -52,26 +98,25 @@ fn main() {
 
     let colours: Vec<Rgb<u8>> = clusters
         .iter()
-        .map(|c| {
-            let rgb8 = c.average_pixel.to_rgb();
-            let mut srgb_iter = rgb8
-                .iter()
-                .map(|&x| x as f32 / 255.0)
-                .map(linear_to_srgb)
-                .map(|f| (f * 255.0) as u8);
-            let srgb = [
-                srgb_iter.next().unwrap(),
-                srgb_iter.next().unwrap(),
-                srgb_iter.next().unwrap(),
-            ];
-            Rgb(srgb)
+        .enumerate()
+        .map(|(_, c)| {
+            //if i < (clusters.len() - 1) {
+            //    clusters[i + 1..].iter().for_each(|c2| {
+            //        let colour1 = c.average_pixel;
+            //        let colour2 = c2.average_pixel;
+            //        let diff = Lab::squared_distance(&colour1, &colour2);
+            //        println!("{:?}\n{:?}\n\t{}", colour1, colour2, diff);
+            //    });
+            //}
+            let srgb8 = oklab_to_srgb(c.average_pixel);
+            Rgb([srgb8.r, srgb8.g, srgb8.b])
         })
         .collect();
 
     clusters.iter().enumerate().for_each(|(i, cluster)| {
         let [r, g, b] = colours[i].0;
         println!(
-            "{{ colour: #{:X}{:X}{:X}, average_error: {}, num_pixels: {} }}",
+            "{{ colour: #{:02X}{:02X}{:02X}, average_error: {}, num_pixels: {} }}",
             r,
             g,
             b,
