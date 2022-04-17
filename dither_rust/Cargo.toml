@@ -1,6 +1,7 @@
 [workspace]
 
 members = [
+    "dither",
     "image_cluster",
     "image_utils",
     "k-means"

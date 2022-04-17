@@ -176,6 +176,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "dither"
+version = "0.1.0"
+dependencies = [
+ "image",
+ "oklab",
+]
+
+[[package]]
 name = "either"
 version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -373,7 +381,6 @@ dependencies = [
 name = "k-means"
 version = "0.1.0"
 dependencies = [
- "clap",
  "image",
  "oklab",
  "rand",
