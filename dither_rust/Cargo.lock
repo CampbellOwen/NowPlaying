@@ -329,6 +329,7 @@ name = "image_utils"
 version = "0.1.0"
 dependencies = [
  "image",
+ "oklab",
 ]
 
 [[package]]
@@ -382,6 +383,7 @@ name = "k-means"
 version = "0.1.0"
 dependencies = [
  "image",
+ "image_utils",
  "oklab",
  "rand",
 ]
