@@ -1,7 +1,8 @@
 use std::cmp::Ordering;
 use std::fmt::Display;
 
-use image::{DynamicImage, GenericImageView, Pixel};
+use image::{DynamicImage, GenericImage, GenericImageView, Pixel};
+use image::{ImageBuffer, Rgb};
 use oklab::{linear_srgb_to_oklab, Oklab, RGB as OkRGB};
 
 use rand::distributions::WeightedIndex;
@@ -11,7 +12,7 @@ use rand::Rng;
 #[derive(Debug)]
 pub struct Cluster {
     pub average_pixel: Oklab,
-    pub members: Vec<Oklab>,
+    pub members: Vec<(u32, u32, Oklab)>,
     pub score: f32,
 }
 
@@ -25,10 +26,11 @@ impl Display for Cluster {
     }
 }
 
-pub fn average_lab(pixels: &[Oklab]) -> Oklab {
+pub fn average_lab(pixels: &[(u32, u32, Oklab)]) -> Oklab {
     let (l, a, b) = pixels
         .iter()
         .copied()
+        .map(|(_, _, p)| p)
         .fold((0.0, 0.0, 0.0), |(l, a, b), pixel| {
             (l + pixel.l as f64, a + pixel.a as f64, b + pixel.b as f64)
         });
@@ -48,7 +50,7 @@ pub fn average_lab(pixels: &[Oklab]) -> Oklab {
         };
     }
 
-    return avg;
+    avg
 }
 
 pub fn oklab_distance(col1: &Oklab, col2: &Oklab) -> f32 {
@@ -134,6 +136,7 @@ fn compare_f32(x1: f32, x2: f32) -> Ordering {
 }
 
 pub fn cluster(img: &DynamicImage, num_clusters: u32, max_iterations: Option<u32>) -> Vec<Cluster> {
+    let (w, _) = img.dimensions();
     let lab_pixels: Vec<Oklab> = img
         .pixels()
         .map(|(_, _, pixel)| {
@@ -167,7 +170,7 @@ pub fn cluster(img: &DynamicImage, num_clusters: u32, max_iterations: Option<u32
             .map(|pixel| {
                 clusters
                     .iter()
-                    .map(|cluster| oklab_distance(&pixel, &cluster.average_pixel))
+                    .map(|cluster| oklab_distance(pixel, &cluster.average_pixel))
                     .map(|score| score * 100.0)
                     .reduce(f32::min)
                     .expect("Should be a min")
@@ -194,7 +197,7 @@ pub fn cluster(img: &DynamicImage, num_clusters: u32, max_iterations: Option<u32
 
         let prev_scores: Vec<f32> = clusters.iter().map(|cluster| cluster.score).collect();
 
-        lab_pixels.iter().for_each(|pixel| {
+        lab_pixels.iter().enumerate().for_each(|(i, pixel)| {
             let (best_cluster_idx, _) = clusters
                 .iter()
                 .enumerate()
@@ -202,12 +205,14 @@ pub fn cluster(img: &DynamicImage, num_clusters: u32, max_iterations: Option<u32
                 .min_by(|(_, s1), (_, s2)| compare_f32(*s1, *s2))
                 .expect("There should always be a best cluster");
 
-            clusters[best_cluster_idx].members.push(*pixel);
+            let (x, y) = (i as u32 % w, i as u32 / w);
+
+            clusters[best_cluster_idx].members.push((x, y, *pixel));
         });
 
         clusters.iter_mut().for_each(|cluster| {
             cluster.average_pixel = average_lab(&cluster.members);
-            cluster.score = cluster.members.iter().fold(0.0, |score, pixel| {
+            cluster.score = cluster.members.iter().fold(0.0, |score, (_, _, pixel)| {
                 score + oklab_distance(pixel, &cluster.average_pixel)
             }) / cluster.members.len() as f32;
         });
@@ -222,4 +227,36 @@ pub fn cluster(img: &DynamicImage, num_clusters: u32, max_iterations: Option<u32
     }
 
     clusters
+}
+
+pub type Rgb8Image = ImageBuffer<Rgb<u8>, Vec<u8>>;
+pub fn filter_matching_pixels<I: GenericImageView<Pixel = Rgb<u8>>>(
+    img: &I,
+    clusters: &[Cluster],
+    reference_colour: &Oklab,
+) -> (Rgb8Image, Rgb8Image)
+where
+    I::Pixel: 'static,
+    <I::Pixel as Pixel>::Subpixel: 'static,
+{
+    let (w, h) = img.dimensions();
+    let mut not_matches = ImageBuffer::<Rgb<u8>, Vec<u8>>::new(w, h);
+    not_matches
+        .copy_from(img, 0, 0)
+        .expect("Should be able to copy image");
+    let mut matches = ImageBuffer::<Rgb<u8>, Vec<u8>>::new(w, h);
+    clusters
+        .iter()
+        .filter(|cluster| oklab_distance(&cluster.average_pixel, reference_colour) < 0.09)
+        .for_each(|cluster| {
+            cluster.members.iter().for_each(|(x, y, _)| {
+                let pixel = img.get_pixel(*x, *y);
+                let channels = pixel.0;
+                let rgb = Rgb::<u8>::from([channels[0], channels[1], channels[2]]);
+                matches.put_pixel(*x, *y, rgb);
+                not_matches.put_pixel(*x, *y, Rgb::<u8>([0, 0, 0]));
+            });
+        });
+
+    (matches, not_matches)
 }

@@ -1,4 +1,4 @@
-use image::{imageops, DynamicImage, GenericImageView, ImageBuffer, Pixel, Rgb};
+use image::{imageops, DynamicImage, GenericImage, GenericImageView, ImageBuffer, Pixel, Rgb};
 
 pub fn get_resized_image<I: GenericImageView>(
     img: &I,
@@ -63,6 +63,30 @@ pub fn to_srgb(img: &DynamicImage) -> ImageBuffer<Rgb<f32>, Vec<<Rgb<f32> as Pix
 
     converted
 }
+
+pub fn colour_bars<I: GenericImageView<Pixel = Rgb<u8>>>(
+    img: &I,
+    colours: &[Rgb<u8>],
+    colour_width: u32,
+) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
+    let (w, h) = img.dimensions();
+    let colour_height = h as usize / colours.len();
+
+    let mut canvas = ImageBuffer::<Rgb<u8>, Vec<u8>>::new(w + colour_width, h);
+    canvas
+        .copy_from(img, colour_width, 0)
+        .expect("Failed to paste original image");
+    colours.iter().copied().enumerate().for_each(|(idx, col)| {
+        ((idx * colour_height)..((idx + 1) * colour_height)).for_each(|y| {
+            (0..colour_width).for_each(|x| {
+                canvas.put_pixel(x as u32, y as u32, col);
+            })
+        })
+    });
+
+    canvas
+}
+
 #[cfg(test)]
 mod tests {
     #[test]

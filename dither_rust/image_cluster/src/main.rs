@@ -1,12 +1,12 @@
 use std::num::ParseIntError;
 
 use clap::Parser;
-use image::{DynamicImage, GenericImage, GenericImageView, ImageBuffer, Rgb};
+use image::{DynamicImage, Rgb};
 use itertools::Itertools;
-use oklab::oklab_to_srgb;
+use oklab::{oklab_to_srgb, srgb_to_oklab, RGB};
 
 use image_utils::*;
-use k_means::cluster;
+use k_means::{cluster, filter_matching_pixels};
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about)]
@@ -125,29 +125,24 @@ fn main() {
         )
     });
 
-    if out_path.is_some() {
+    if let Some(out_path) = out_path {
         let rgb = original.to_rgb8();
 
-        let (w, h) = rgb.dimensions();
+        if let Some(mask_rgb) = mask_colour {
+            let oklab_mask = srgb_to_oklab(RGB::from(mask_rgb));
 
-        let colour_height = original.dimensions().1 as usize / clusters.len();
-        let colour_width = 30;
-
-        let mut canvas = ImageBuffer::<Rgb<u8>, Vec<u8>>::new(w + colour_width, h);
-        canvas
-            .copy_from(&rgb, colour_width, 0)
-            .expect("Failed to paste original image");
-        colours.iter().copied().enumerate().for_each(|(idx, col)| {
-            ((idx * colour_height)..((idx + 1) * colour_height)).for_each(|y| {
-                (0..colour_width).for_each(|x| {
-                    canvas.put_pixel(x as u32, y as u32, col);
-                })
-            })
-        });
-        out_path.iter().for_each(|out_path| {
-            canvas
-                .save(out_path)
+            let (matched, not_matched) = filter_matching_pixels(&rgb, &clusters, &oklab_mask);
+            matched
+                .save(&out_path)
                 .unwrap_or_else(|_| panic!(" Failed writing output image to {}", out_path));
-        });
+            not_matched.save("not_matched.png").unwrap_or_else(|_| {
+                panic!(" Failed writing output image to {}", "not_matched.png")
+            });
+        } else {
+            let canvas = colour_bars(&rgb, &colours, 30);
+            canvas
+                .save(&out_path)
+                .unwrap_or_else(|_| panic!(" Failed writing output image to {}", out_path));
+        }
     }
 }
