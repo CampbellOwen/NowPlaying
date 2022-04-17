@@ -7,25 +7,30 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug executable 'dither'",
+      "name": "Debug executable 'image_cluster'",
       "cargo": {
-        "args": ["build", "--bin=dither", "--package=dither"],
+        "args": ["build", "--bin=image_cluster", "--package=image_cluster"],
         "filter": {
-          "name": "dither",
+          "name": "image_cluster",
           "kind": "bin"
         }
       },
-      "args": ["../images/anamanaguchi-power-supply.png"],
+      "args": ["-n", "5", "../images/anamanaguchi-power-supply.png"],
       "cwd": "${workspaceFolder}"
     },
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug unit tests in executable 'dither'",
+      "name": "Debug unit tests in executable 'image_cluster'",
       "cargo": {
-        "args": ["test", "--no-run", "--bin=dither", "--package=dither"],
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=image_cluster",
+          "--package=image_cluster"
+        ],
         "filter": {
-          "name": "dither",
+          "name": "image_cluster",
           "kind": "bin"
         }
       },
