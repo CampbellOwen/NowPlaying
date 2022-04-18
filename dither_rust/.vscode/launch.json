@@ -21,17 +21,12 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug unit tests in executable 'image_cluster'",
+      "name": "Debug unit tests",
       "cargo": {
-        "args": [
-          "test",
-          "--no-run",
-          "--bin=image_cluster",
-          "--package=image_cluster"
-        ],
+        "args": ["test"],
         "filter": {
-          "name": "image_cluster",
-          "kind": "bin"
+          "name": "dither",
+          "kind": "lib"
         }
       },
       "args": [],
