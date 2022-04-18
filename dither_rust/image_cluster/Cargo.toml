@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 image_utils = { path = "../image_utils" }
 k-means = { path = "../k-means" }
+dither = { path = "../dither" }
 
 clap = { version = "3.1.8", features = ["derive"] }
 image = "0.24.1"

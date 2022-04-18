@@ -1,9 +1,11 @@
 use std::num::ParseIntError;
 
 use clap::Parser;
-use image::{DynamicImage, Rgb};
+use image::{DynamicImage, GenericImageView, ImageBuffer, Rgb};
 use itertools::Itertools;
 use oklab::{oklab_to_srgb, srgb_to_oklab, RGB};
+
+use dither::*;
 
 use image_utils::*;
 use k_means::{cluster, filter_matching_pixels};
@@ -138,6 +140,66 @@ fn main() {
             not_matched.save("not_matched.png").unwrap_or_else(|_| {
                 panic!(" Failed writing output image to {}", "not_matched.png")
             });
+
+            let red_palette = [
+                srgb_to_oklab(RGB { r: 0, g: 0, b: 0 }),
+                srgb_to_oklab(RGB {
+                    r: 255,
+                    g: 255,
+                    b: 255,
+                }),
+                srgb_to_oklab(RGB { r: 255, g: 0, b: 0 }),
+            ];
+            let red_dithered = dither(&matched, &red_palette, DitherPattern::FloydSteinberg);
+
+            let bw_palette = [
+                srgb_to_oklab(RGB { r: 0, g: 0, b: 0 }),
+                srgb_to_oklab(RGB {
+                    r: 255,
+                    g: 255,
+                    b: 255,
+                }),
+            ];
+
+            red_dithered.save("red_dithered.png");
+
+            let bw = DynamicImage::ImageRgb8(not_matched).to_luma16();
+            let bw = DynamicImage::ImageLuma16(bw).to_rgb8();
+
+            let bw_dithered = dither(&bw, &bw_palette, DitherPattern::FloydSteinberg);
+            bw_dithered.save("bw_dithered.png");
+
+            let (w, h) = img.dimensions();
+            let mut combined = ImageBuffer::<Rgb<u8>, Vec<u8>>::new(w, h);
+
+            let matched_pixels: Vec<(u32, u32)> = clusters
+                .iter()
+                .filter(|cluster| oklab_distance(&cluster.average_pixel, &oklab_mask) < 0.09)
+                .map(|cluster| {
+                    cluster
+                        .members
+                        .iter()
+                        .map(|(x, y, _)| (*x, *y))
+                        .collect::<Vec<(u32, u32)>>()
+                })
+                .reduce(|mut master, list| {
+                    master.extend(list);
+                    master
+                })
+                .expect("Should have results");
+
+            for y in 0..h {
+                for x in 0..w {
+                    let pixel = if matched_pixels.contains(&(x, y)) {
+                        red_dithered.get_pixel(x, y)
+                    } else {
+                        bw_dithered.get_pixel(x, y)
+                    };
+                    combined.put_pixel(x, y, pixel.clone());
+                }
+            }
+
+            combined.save("combined.png");
         } else {
             let canvas = colour_bars(&rgb, &colours, 30);
             canvas
