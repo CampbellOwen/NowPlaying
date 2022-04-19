@@ -125,7 +125,7 @@ pub fn filter_matching_pixels<I: GenericImageView<Pixel = Rgb<u8>>>(
     img: &I,
     clusters: &[Cluster],
     reference_colour: &Oklab,
-) -> (Rgb8Image, Rgb8Image)
+) -> Option<(Rgb8Image, Rgb8Image)>
 where
     I::Pixel: 'static,
     <I::Pixel as Pixel>::Subpixel: 'static,
@@ -136,18 +136,24 @@ where
         .copy_from(img, 0, 0)
         .expect("Should be able to copy image");
     let mut matches = ImageBuffer::<Rgb<u8>, Vec<u8>>::new(w, h);
-    clusters
+    let matching_clusters: Vec<&Cluster> = clusters
         .iter()
-        .filter(|cluster| oklab_distance(&cluster.average_pixel, reference_colour) < 0.09)
-        .for_each(|cluster| {
-            cluster.members.iter().for_each(|(x, y, _)| {
-                let pixel = img.get_pixel(*x, *y);
-                let channels = pixel.0;
-                let rgb = Rgb::<u8>::from([channels[0], channels[1], channels[2]]);
-                matches.put_pixel(*x, *y, rgb);
-                not_matches.put_pixel(*x, *y, Rgb::<u8>([0, 0, 0]));
-            });
-        });
+        .filter(|cluster| oklab_distance(&cluster.average_pixel, reference_colour) < 0.11)
+        .collect();
 
-    (matches, not_matches)
+    if matching_clusters.len() == 0 {
+        return None;
+    }
+
+    matching_clusters.iter().for_each(|&cluster| {
+        cluster.members.iter().for_each(|(x, y, _)| {
+            let pixel = img.get_pixel(*x, *y);
+            let channels = pixel.0;
+            let rgb = Rgb::<u8>::from([channels[0], channels[1], channels[2]]);
+            matches.put_pixel(*x, *y, rgb);
+            not_matches.put_pixel(*x, *y, Rgb::<u8>([0, 0, 0]));
+        });
+    });
+
+    Some((matches, not_matches))
 }
