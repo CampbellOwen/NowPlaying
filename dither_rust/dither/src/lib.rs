@@ -1,13 +1,15 @@
-use image::{GenericImageView, ImageBuffer, Pixel, Rgb};
-use image_utils::{compare_f32, oklab_distance};
-use oklab::{linear_srgb_to_oklab, oklab_to_srgb, Oklab, RGB as OkRGB};
+use image::{DynamicImage, GenericImage, GenericImageView, ImageBuffer, Pixel, Rgb};
+use image_utils::{compare_f32, linear_to_srgb, oklab_distance, to_linear};
+use oklab::{
+    linear_srgb_to_oklab, oklab_to_linear_srgb, oklab_to_srgb, srgb_to_oklab, Oklab, RGB as OkRGB,
+};
 
 pub enum DitherPattern {
     FloydSteinberg,
 }
 
 struct DitherMatrix {
-    pub weights: Vec<Vec<f64>>,
+    pub weights: Vec<Vec<f32>>,
 }
 
 fn get_dither_matrix(pattern: DitherPattern) -> DitherMatrix {
@@ -38,66 +40,93 @@ fn select_colour(colour: &Oklab, palette: &[Oklab]) -> (Oklab, RemainingColour) 
     )
 }
 
+fn select_colour_rgb(colour: Rgb<f32>, palette: &[Oklab]) -> (Rgb<f32>, Rgb<f32>) {
+    let oklab_colour = linear_srgb_to_oklab(oklab::RGB::from(colour.0.clone()));
+    let (palette_idx, _) = palette
+        .iter()
+        .enumerate()
+        .map(|(i, p)| (i, oklab_distance(&oklab_colour, p)))
+        .min_by(|(_, dist1), (_, dist2)| compare_f32(*dist1, *dist2))
+        .expect("Should always be a best choice");
+
+    let oklab::RGB { r, g, b } = oklab_to_linear_srgb(palette[palette_idx]);
+    let quantized = Rgb([r, g, b]);
+    let [r_c, g_c, b_c] = colour.0;
+    let diff = Rgb([r_c - r, g_c - g, b_c - b]);
+
+    (quantized, diff)
+}
+
 pub fn dither<I: GenericImageView<Pixel = Rgb<u8>>>(
     img: &I,
     palette: &[Oklab],
     pattern: DitherPattern,
 ) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
     let (w, h) = img.dimensions();
-    let mut lab_pixels: Vec<Oklab> = img
-        .pixels()
-        .map(|(_, _, pixel)| {
-            let channels = pixel.channels();
-            linear_srgb_to_oklab(OkRGB::from([
-                channels[0] as f32 / 255.0,
-                channels[1] as f32 / 255.0,
-                channels[2] as f32 / 255.0,
-            ]))
-        })
-        .collect();
+
+    let mut linear_img: ImageBuffer<Rgb<u8>, Vec<u8>> = ImageBuffer::new(w, h);
+    linear_img.copy_from(img, 0, 0);
+    let linear_img = DynamicImage::ImageRgb8(linear_img);
+
+    let mut linear_img = to_linear(&linear_img);
+
+    //let mut lab_pixels: Vec<Oklab> = img
+    //    .pixels()
+    //    .map(|(_, _, pixel)| {
+    //        let channels = pixel.channels();
+    //        srgb_to_oklab(OkRGB::from([channels[0], channels[1], channels[2]]))
+    //    })
+    //    .collect();
 
     let dither_matrix = get_dither_matrix(pattern);
 
-    for i in 0..lab_pixels.len() {
-        let (x, y) = (i as u32 % w, i as u32 / w);
-        let (quantized, diff) = select_colour(&lab_pixels[i], palette);
-        lab_pixels[i] = quantized;
+    for y in 0..h {
+        for x in 0..w {
+            //let (quantized, diff) = select_colour(&lab_pixels[i], palette);
+            let (quantized, diff) = select_colour_rgb(linear_img.get_pixel(x, y).clone(), palette);
 
-        let width_right = dither_matrix.weights[0].len();
-        let total_width = dither_matrix.weights[1].len();
-        let left_offset = total_width as u32 - (width_right + 1) as u32;
-        for (row_i, row) in dither_matrix.weights.iter().enumerate() {
-            for (col, &weight) in row.iter().enumerate() {
-                let (x_i, y_i) = (
-                    if row_i == 0 {
-                        x as i32 + (col + 1) as i32
-                    } else {
-                        (x as i32 - left_offset as i32) + col as i32
-                    },
-                    y as i32 + row_i as i32,
-                );
+            linear_img.put_pixel(x, y, quantized);
 
-                if x_i >= 0 && x_i < w as i32 && y_i >= 0 && y_i < h as i32 {
-                    let idx = (y_i as u32 * w) + x_i as u32;
+            let width_right = dither_matrix.weights[0].len();
+            let total_width = dither_matrix.weights[1].len();
+            let left_offset = total_width as u32 - (width_right + 1) as u32;
+            for (row_i, row) in dither_matrix.weights.iter().enumerate() {
+                for (col, &weight) in row.iter().enumerate() {
+                    let (x_i, y_i) = (
+                        if row_i == 0 {
+                            x as i32 + (col + 1) as i32
+                        } else {
+                            (x as i32 - left_offset as i32) + col as i32
+                        },
+                        y as i32 + row_i as i32,
+                    );
 
-                    let col = lab_pixels[idx as usize];
-                    let new_col = Oklab {
-                        l: col.l + (diff.l * weight as f32),
-                        a: col.a + (diff.a * weight as f32),
-                        b: col.b + (diff.b * weight as f32),
-                    };
-                    lab_pixels[idx as usize] = new_col;
+                    if x_i >= 0 && x_i < w as i32 && y_i >= 0 && y_i < h as i32 {
+                        let [r, g, b] = linear_img.get_pixel(x_i as u32, y_i as u32).0;
+
+                        let [diff_r, diff_g, diff_b] = diff.0;
+
+                        let new_col = Rgb::<f32>([
+                            r + (diff_r * weight),
+                            g + (diff_g * weight),
+                            b + (diff_b * weight),
+                        ]);
+                        linear_img.put_pixel(x_i as u32, y_i as u32, new_col);
+                    }
                 }
             }
         }
     }
 
     let mut canvas = ImageBuffer::new(w, h);
-    lab_pixels.iter().enumerate().for_each(|(i, pixel)| {
-        let i = i as u32;
-        let (x, y) = (i % w, i / w);
-        let srgb = oklab_to_srgb(*pixel);
-        let srgb = Rgb([srgb.r, srgb.g, srgb.b]);
+    linear_img.enumerate_pixels().for_each(|(x, y, pixel)| {
+        let [r, g, b] = pixel.0;
+
+        let srgb = Rgb([
+            (linear_to_srgb(r) * 255.0) as u8,
+            (linear_to_srgb(g) * 255.0) as u8,
+            (linear_to_srgb(b) * 255.0) as u8,
+        ]);
         canvas.put_pixel(x, y, srgb);
     });
 
