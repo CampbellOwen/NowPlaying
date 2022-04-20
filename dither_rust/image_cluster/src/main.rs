@@ -168,40 +168,40 @@ fn main() {
                 let bw = DynamicImage::ImageRgb8(not_matched).to_luma16();
                 let bw = DynamicImage::ImageLuma16(bw).to_rgb8();
 
-                let bw_dithered = dither(&bw, &bw_palette, DitherPattern::FloydSteinberg);
+                let mut bw_dithered = dither(&bw, &bw_palette, DitherPattern::FloydSteinberg);
                 bw_dithered.save("bw_dithered.png");
 
-                let (w, h) = img.dimensions();
-                let mut combined = ImageBuffer::<Rgb<u8>, Vec<u8>>::new(w, h);
+                //let (w, h) = img.dimensions();
+                //let mut combined = ImageBuffer::<Rgb<u8>, Vec<u8>>::new(w, h);
 
-                let matched_pixels: Vec<(u32, u32)> = clusters
+                clusters
                     .iter()
                     .filter(|cluster| oklab_distance(&cluster.average_pixel, &oklab_mask) < 0.11)
-                    .map(|cluster| {
-                        cluster
-                            .members
-                            .iter()
-                            .map(|(x, y, _)| (*x, *y))
-                            .collect::<Vec<(u32, u32)>>()
-                    })
-                    .reduce(|mut master, list| {
-                        master.extend(list);
-                        master
-                    })
-                    .expect("Should have results");
+                    .for_each(|cluster| {
+                        cluster.members.iter().for_each(|(x, y, _)| {
+                            let px = red_dithered.get_pixel(*x, *y);
+                            bw_dithered.put_pixel(*x, *y, px.clone());
+                        })
+                    });
+                //.reduce(|mut master, list| {
+                //    master.extend(list);
+                //    master
+                //})
+                //.expect("Should have results");
 
-                for y in 0..h {
-                    for x in 0..w {
-                        let pixel = if matched_pixels.contains(&(x, y)) {
-                            red_dithered.get_pixel(x, y)
-                        } else {
-                            bw_dithered.get_pixel(x, y)
-                        };
-                        combined.put_pixel(x, y, pixel.clone());
-                    }
-                }
+                //for y in 0..h {
+                //    for x in 0..w {
+                //        let pixel = if matched_pixels.contains(&(x, y)) {
+                //            red_dithered.get_pixel(x, y)
+                //        } else {
+                //            bw_dithered.get_pixel(x, y)
+                //        };
+                //        combined.put_pixel(x, y, pixel.clone());
+                //    }
+                //}
 
-                combined.save("combined.png");
+                //combined.save("combined.png");
+                bw_dithered.save("combined.png");
             } else {
                 let bw = DynamicImage::ImageRgb8(rgb).to_luma16();
                 let bw = DynamicImage::ImageLuma16(bw).to_rgb8();
