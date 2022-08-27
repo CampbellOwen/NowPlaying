@@ -113,8 +113,8 @@ sleep_inactive = 15
 dither, dither_red = dither_function(dither_path, image_path)
 
 interfaces = [
-    #BasicInterface(dither, img_width, img_height),
-    #MirroredInterface(dither, img_width, img_height),
+    BasicInterface(dither, img_width, img_height),
+    MirroredInterface(dither, img_width, img_height),
     RawAlbumInterface(dither_red, img_width, img_height)
 ]
 
