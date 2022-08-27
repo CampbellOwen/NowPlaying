@@ -69,7 +69,7 @@ def dither_function(dither_path, image_path):
         img.save(working_image_path)
         log(LogLevel.INFO, LogCategory.DITHERING, "Dithering album art")
         args = [f'{dither_path}',
-                f'{working_image_path}', '-n', '5', 'dither', '-o', f'{out_path}']
+                f'{working_image_path}', '-n', '5', '-m', '50', 'dither', '-o', f'{out_path}']
 
         print(args)
         dither_return_code = subprocess.call(args)
