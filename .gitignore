@@ -10,3 +10,4 @@ out.png
 bin
 .crates.toml
 .crates2.json
+*.png
