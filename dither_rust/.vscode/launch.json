@@ -7,7 +7,7 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug executable 'image_cluster'",
+      "name": "Debug cluster 'image_cluster'",
       "cargo": {
         "args": ["build", "--bin=image_cluster", "--package=image_cluster"],
         "filter": {
@@ -15,7 +15,56 @@
           "kind": "bin"
         }
       },
-      "args": ["-n", "5", "../images/anamanaguchi-power-supply.png"],
+      "args": [
+        "-n",
+        "5",
+        "../images/queens-of-the-stone-age-songs-for-the-deaf.png",
+        "cluster"
+      ],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug dither 'image_cluster'",
+      "cargo": {
+        "args": ["build", "--bin=image_cluster", "--package=image_cluster"],
+        "filter": {
+          "name": "image_cluster",
+          "kind": "bin"
+        }
+      },
+      "args": [
+        "-n",
+        "5",
+        "../images/queens-of-the-stone-age-songs-for-the-deaf.png",
+        "dither",
+        "-o",
+        "test_dither.png"
+      ],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug (red) dither 'image_cluster'",
+      "cargo": {
+        "args": ["build", "--bin=image_cluster", "--package=image_cluster"],
+        "filter": {
+          "name": "image_cluster",
+          "kind": "bin"
+        }
+      },
+      "args": [
+        "-n",
+        "7",
+        "../images/ditch-boca-do-inferno.png",
+        "dither",
+        "-c",
+        "E42C35",
+        "-o",
+        "test_dither.png"
+      ],
       "cwd": "${workspaceFolder}"
     },
     {

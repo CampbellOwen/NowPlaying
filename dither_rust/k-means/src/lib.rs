@@ -1,3 +1,4 @@
+use core::num;
 use std::fmt::Display;
 
 use image::{DynamicImage, GenericImage, GenericImageView, Pixel};
@@ -26,7 +27,12 @@ impl Display for Cluster {
     }
 }
 
-pub fn cluster(img: &DynamicImage, num_clusters: u32, max_iterations: Option<u32>) -> Vec<Cluster> {
+pub fn cluster(
+    img: &DynamicImage,
+    num_clusters: u32,
+    max_iterations: Option<u32>,
+    seed_colour: Option<Oklab>,
+) -> Vec<Cluster> {
     let (w, _) = img.dimensions();
     let lab_pixels: Vec<Oklab> = img
         .pixels()
@@ -44,37 +50,58 @@ pub fn cluster(img: &DynamicImage, num_clusters: u32, max_iterations: Option<u32
     let mut rng = rand::thread_rng();
 
     let unique_pixels = unique_colours(&lab_pixels);
+
     let mut clusters = Vec::new();
-    for i in 0..num_clusters {
-        if i == 0 {
-            let idx = rng.gen_range(0..unique_pixels.len());
-            clusters.push(Cluster {
-                average_pixel: unique_pixels[idx],
-                members: Vec::new(),
-                score: 0.0,
-            });
-            continue;
-        }
-
-        let weights: Vec<f32> = unique_pixels
-            .iter()
-            .map(|pixel| {
-                clusters
-                    .iter()
-                    .map(|cluster| oklab_distance(pixel, &cluster.average_pixel))
-                    .map(|score| score * 100.0)
-                    .reduce(f32::min)
-                    .expect("Should be a min")
-            })
-            .collect();
-
-        //println!("{:?}", weights);
-        let dist = WeightedIndex::new(&weights).expect("Should be able to create a distribution");
+    let mut num_clusters = num_clusters;
+    if let Some(seed_colour) = seed_colour {
         clusters.push(Cluster {
-            average_pixel: unique_pixels[dist.sample(&mut rng)],
+            average_pixel: seed_colour,
             members: Vec::new(),
             score: 0.0,
         });
+        num_clusters -= 1;
+    }
+    if unique_pixels.len() <= num_clusters as usize {
+        for pixel in unique_pixels {
+            clusters.push(Cluster {
+                average_pixel: pixel,
+                members: Vec::new(),
+                score: 0.0,
+            });
+        }
+    } else {
+        for i in 0..num_clusters {
+            if i == 0 {
+                let idx = rng.gen_range(0..unique_pixels.len());
+                clusters.push(Cluster {
+                    average_pixel: unique_pixels[idx],
+                    members: Vec::new(),
+                    score: 0.0,
+                });
+                continue;
+            }
+
+            let weights: Vec<f32> = unique_pixels
+                .iter()
+                .map(|pixel| {
+                    clusters
+                        .iter()
+                        .map(|cluster| oklab_distance(pixel, &cluster.average_pixel))
+                        .map(|score| score * 100.0)
+                        .reduce(f32::min)
+                        .expect("Should be a min")
+                })
+                .collect();
+
+            //println!("{:?}", weights);
+            let dist =
+                WeightedIndex::new(&weights).expect("Should be able to create a distribution");
+            clusters.push(Cluster {
+                average_pixel: unique_pixels[dist.sample(&mut rng)],
+                members: Vec::new(),
+                score: 0.0,
+            });
+        }
     }
 
     let max_iterations = max_iterations.unwrap_or(u32::MAX);
@@ -125,6 +152,7 @@ pub fn filter_matching_pixels<I: GenericImageView<Pixel = Rgb<u8>>>(
     img: &I,
     clusters: &[Cluster],
     reference_colour: &Oklab,
+    threshold: f32,
 ) -> Option<(Rgb8Image, Rgb8Image)>
 where
     I::Pixel: 'static,
@@ -138,10 +166,10 @@ where
     let mut matches = ImageBuffer::<Rgb<u8>, Vec<u8>>::new(w, h);
     let matching_clusters: Vec<&Cluster> = clusters
         .iter()
-        .filter(|cluster| oklab_distance(&cluster.average_pixel, reference_colour) < 0.11)
+        .filter(|cluster| oklab_distance(&cluster.average_pixel, reference_colour) < threshold)
         .collect();
 
-    if matching_clusters.len() == 0 {
+    if matching_clusters.is_empty() {
         return None;
     }
 
