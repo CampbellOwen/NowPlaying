@@ -1,7 +1,7 @@
 use std::num::ParseIntError;
 
 use clap::{Args, Parser, Subcommand};
-use image::{DynamicImage, GenericImageView, ImageBuffer, Rgb};
+use image::{DynamicImage, Rgb};
 use itertools::Itertools;
 use oklab::{oklab_to_srgb, srgb_to_oklab, RGB};
 

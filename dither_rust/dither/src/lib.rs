@@ -1,8 +1,6 @@
-use image::{DynamicImage, GenericImage, GenericImageView, ImageBuffer, Pixel, Rgb};
+use image::{DynamicImage, GenericImage, GenericImageView, ImageBuffer, Rgb};
 use image_utils::{compare_f32, linear_to_srgb, oklab_distance, to_linear};
-use oklab::{
-    linear_srgb_to_oklab, oklab_to_linear_srgb, oklab_to_srgb, srgb_to_oklab, Oklab, RGB as OkRGB,
-};
+use oklab::{linear_srgb_to_oklab, oklab_to_linear_srgb, Oklab};
 
 pub enum DitherPattern {
     FloydSteinberg,
@@ -21,6 +19,7 @@ fn get_dither_matrix(pattern: DitherPattern) -> DitherMatrix {
 }
 
 type RemainingColour = Oklab;
+#[allow(dead_code)]
 fn select_colour(colour: &Oklab, palette: &[Oklab]) -> (Oklab, RemainingColour) {
     let (palette_idx, _) = palette
         .iter()
@@ -41,7 +40,7 @@ fn select_colour(colour: &Oklab, palette: &[Oklab]) -> (Oklab, RemainingColour) 
 }
 
 fn select_colour_rgb(colour: Rgb<f32>, palette: &[Oklab]) -> (Rgb<f32>, Rgb<f32>) {
-    let oklab_colour = linear_srgb_to_oklab(oklab::RGB::from(colour.0.clone()));
+    let oklab_colour = linear_srgb_to_oklab(oklab::RGB::from(colour.0));
     let (palette_idx, _) = palette
         .iter()
         .enumerate()
@@ -65,7 +64,9 @@ pub fn dither<I: GenericImageView<Pixel = Rgb<u8>>>(
     let (w, h) = img.dimensions();
 
     let mut linear_img: ImageBuffer<Rgb<u8>, Vec<u8>> = ImageBuffer::new(w, h);
-    linear_img.copy_from(img, 0, 0);
+    linear_img
+        .copy_from(img, 0, 0)
+        .expect("Copying image should not fail");
     let linear_img = DynamicImage::ImageRgb8(linear_img);
 
     let mut linear_img = to_linear(&linear_img);
@@ -83,7 +84,7 @@ pub fn dither<I: GenericImageView<Pixel = Rgb<u8>>>(
     for y in 0..h {
         for x in 0..w {
             //let (quantized, diff) = select_colour(&lab_pixels[i], palette);
-            let (quantized, diff) = select_colour_rgb(linear_img.get_pixel(x, y).clone(), palette);
+            let (quantized, diff) = select_colour_rgb(*linear_img.get_pixel(x, y), palette);
 
             linear_img.put_pixel(x, y, quantized);
 
@@ -154,7 +155,7 @@ mod tests {
             }),
         ];
 
-        let (colour, diff) = select_colour(&colour, &palette);
+        let (colour, _) = select_colour(&colour, &palette);
 
         assert_eq!(
             colour,
@@ -180,7 +181,7 @@ mod tests {
 
         let res = dither(&img, &palette, DitherPattern::FloydSteinberg);
         assert_eq!(res.dimensions(), (16, 16));
-        res.save("test.png");
+        res.save("test.png").unwrap();
     }
 
     #[test]
@@ -200,6 +201,6 @@ mod tests {
 
         let res = dither(&img, &palette, DitherPattern::FloydSteinberg);
         assert_eq!(res.dimensions(), (640, 640));
-        res.save("test.png");
+        res.save("test.png").unwrap();
     }
 }

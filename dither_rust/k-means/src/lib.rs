@@ -1,4 +1,3 @@
-use core::num;
 use std::fmt::Display;
 
 use image::{DynamicImage, GenericImage, GenericImageView, Pixel};
