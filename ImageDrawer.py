@@ -18,8 +18,6 @@ class BasicDrawer:
         pass
 
     def draw(self, img, red):
-        # red.show()
-
         img = img.convert('RGB')
         red = red.convert('RGB')
 
