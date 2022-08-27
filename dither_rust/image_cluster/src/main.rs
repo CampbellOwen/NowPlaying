@@ -116,30 +116,30 @@ fn main() {
     } else {
         None
     };
-    let clusters = cluster(&linear, num_clusters, max_iterations, seed_colour);
-
-    let colours: Vec<Rgb<u8>> = clusters
-        .iter()
-        .enumerate()
-        .map(|(_, c)| {
-            //if i < (clusters.len() - 1) {
-            //    clusters[i + 1..].iter().for_each(|c2| {
-            //        let colour1 = c.average_pixel;
-            //        let colour2 = c2.average_pixel;
-            //        let diff = Lab::squared_distance(&colour1, &colour2);
-            //        println!("{:?}\n{:?}\n\t{}", colour1, colour2, diff);
-            //    });
-            //}
-            let srgb8 = oklab_to_srgb(c.average_pixel);
-            Rgb([srgb8.r, srgb8.g, srgb8.b])
-        })
-        .collect();
 
     let rgb = original.to_rgb8();
 
     match command {
         Commands::Cluster(args) => {
             let ClusterArguments { out_path } = args;
+            let clusters = cluster(&linear, num_clusters, max_iterations, seed_colour);
+
+            let colours: Vec<Rgb<u8>> = clusters
+                .iter()
+                .enumerate()
+                .map(|(_, c)| {
+                    //if i < (clusters.len() - 1) {
+                    //    clusters[i + 1..].iter().for_each(|c2| {
+                    //        let colour1 = c.average_pixel;
+                    //        let colour2 = c2.average_pixel;
+                    //        let diff = Lab::squared_distance(&colour1, &colour2);
+                    //        println!("{:?}\n{:?}\n\t{}", colour1, colour2, diff);
+                    //    });
+                    //}
+                    let srgb8 = oklab_to_srgb(c.average_pixel);
+                    Rgb([srgb8.r, srgb8.g, srgb8.b])
+                })
+                .collect();
             if let Some(path) = out_path {
                 let canvas = colour_bars(&rgb, &colours, 30);
                 canvas
@@ -172,24 +172,11 @@ fn main() {
                     )
                 })
             });
-            clusters.iter().enumerate().for_each(|(i, cluster)| {
-                let [r, g, b] = colours[i].0;
-                println!(
-                    "{{ colour: #{:02X}{:02X}{:02X}, average_error: {}, num_pixels: {} }}",
-                    r,
-                    g,
-                    b,
-                    cluster.score,
-                    cluster.members.len()
-                )
-            });
-            let canvas = colour_bars(&rgb, &colours, 30);
-            canvas.save("cluster_bars.png").unwrap_or_else(|_| {
-                panic!(" Failed writing output image to {}", "cluster_bars.png")
-            });
 
             if let Some(mask_rgb) = third_colour {
                 let oklab_mask = srgb_to_oklab(RGB::from(mask_rgb));
+
+                let clusters = cluster(&linear, num_clusters, max_iterations, seed_colour);
 
                 let threshold = 0.15;
                 if let Some((matched, not_matched)) =
