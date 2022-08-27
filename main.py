@@ -65,16 +65,35 @@ def resize_image(image_path, target_height):
 def dither_function(dither_path, image_path):
     def dither(img):
         working_image_path = f"{image_path}/temp.png"
+        out_path = f"{image_path}/temp_dither.png"
         img.save(working_image_path)
         log(LogLevel.INFO, LogCategory.DITHERING, "Dithering album art")
-        dither_return_code = subprocess.call(
-            [dither_path, working_image_path, working_image_path])
+        args = [f'{dither_path}',
+                f'{working_image_path}', '-n', '5', 'dither', '-o', f'{out_path}']
+
+        print(args)
+        dither_return_code = subprocess.call(args)
         if not dither_return_code == 0:
             log(LogLevel.ERROR, LogCategory.DITHERING, "Dithering failed")
             exit(1)
-        return Image.open(working_image_path)
+        return Image.open(out_path)
 
-    return dither
+    def dither_red(img):
+        working_image_path = f"{image_path}/temp.png"
+        out_path = f"{image_path}/temp_dither.png"
+        img.save(working_image_path)
+        log(LogLevel.INFO, LogCategory.DITHERING, "Dithering album art")
+        args = [f'{dither_path}',
+                f'{working_image_path}', '-n', '5', '-m', '50', 'dither', '-o', f'{out_path}', '-c',  'E42C35']
+
+        print(args)
+        dither_return_code = subprocess.call(args)
+        if not dither_return_code == 0:
+            log(LogLevel.ERROR, LogCategory.DITHERING, "Dithering failed")
+            exit(1)
+        return Image.open(out_path)
+
+    return dither, dither_red
 
 
 if len(argv) < 3:
@@ -91,12 +110,12 @@ current_song = None
 sleep_active = 5
 sleep_inactive = 15
 
-dither = dither_function(dither_path, image_path)
+dither, dither_red = dither_function(dither_path, image_path)
 
 interfaces = [
-    BasicInterface(dither, img_width, img_height),
-    MirroredInterface(dither, img_width, img_height),
-    RawAlbumInterface(dither, img_width, img_height)
+    #BasicInterface(dither, img_width, img_height),
+    #MirroredInterface(dither, img_width, img_height),
+    RawAlbumInterface(dither_red, img_width, img_height)
 ]
 
 with BasicDrawer() if platform == "win32" else EinkDrawer() as drawer:

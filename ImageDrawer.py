@@ -1,33 +1,43 @@
 
+from Log import log, LogCategory, LogLevel
+from PIL import Image
+from sys import argv, platform
+
+
 class BasicDrawer:
     def __enter__(self):
         return self
+
     def __exit__(self, exc_type, exc_value, traceback):
         pass
+
+    def sleep(self):
+        pass
+
+    def wakeup(self):
+        pass
+
     def draw(self, img, red):
         # red.show()
 
         img = img.convert('RGB')
         red = red.convert('RGB')
-        
+
         red_pixels = red.load()
         black_pixels = img.load()
         for x in range(red.width):
             for y in range(red.height):
-                if red_pixels[x,y][0] <= 0:
-                    black_pixels[x,y] = (255,0,0)
+                if red_pixels[x, y][0] <= 0:
+                    black_pixels[x, y] = (255, 0, 0)
         img.show()
 
-        return
     def clear(self):
-        return
+        pass
 
 
-from sys import argv, platform
 if not platform == "win32":
     from lib.waveshare_epd import epd5in83b_V2 as waveshare
-from PIL import Image
-from Log import log, LogCategory, LogLevel
+
 
 class EinkDrawer:
     def __enter__(self):
@@ -55,7 +65,8 @@ class EinkDrawer:
         one_bit_red = red.convert("1", dither=Image.NONE)
 
         log(LogLevel.INFO, LogCategory.EINK, "Drawing to display")
-        self.epd.display(self.epd.getbuffer(one_bit_bw), self.epd.getbuffer(one_bit_red))
+        self.epd.display(self.epd.getbuffer(one_bit_bw),
+                         self.epd.getbuffer(one_bit_red))
 
     def clear(self):
         log(LogLevel.INFO, LogCategory.EINK, "Clearing display")
