@@ -7,3 +7,6 @@ deployment
 target
 image/*
 out.png
+bin
+.crates.toml
+.crates2.json
